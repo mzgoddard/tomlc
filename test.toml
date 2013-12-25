@@ -1,0 +1,5 @@
+# Hello World
+[player]
+size = 10
+maxOxygen = 2048
+maxResource = 256

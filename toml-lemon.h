@@ -1,0 +1,10 @@
+#define EOF                             1
+#define COMMENT                         2
+#define LEFT_SQUARE                     3
+#define RIGHT_SQUARE                    4
+#define ID_DOT                          5
+#define ID                              6
+#define EQ                              7
+#define COMMA                           8
+#define STRING                          9
+#define NUMBER                         10

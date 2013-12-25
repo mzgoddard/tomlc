@@ -1,0 +1,41 @@
+#include "toml-lemon.h"
+#include "toml-parser.h"
+
+#define RETURNTOKEN( tokenid ) *token = tokenData->token = tokenid; \
+  tokenData->end = p; \
+  return 1
+
+#define YYMARKER tokenData->marker
+#define SKIP(x) { tokenData->start = p; goto yy0; }
+
+int TOMLScan(char *p, int* token, TOMLToken *tokenData ) {
+  tokenData->start = p;
+yy0:
+/*!re2c
+  re2c:define:YYCTYPE = "char";
+  re2c:define:YYCURSOR = p;
+  re2c:yyfill:enable = 0;
+
+  comment_start = [#];
+  noteol = [^\n];
+  eol = [\n];
+  quote = ["];
+  escape_quote = "\\\"";
+  string_bulk = [^"];
+  digit = [0-9];
+  negate = [\-];
+  dot = "\.";
+
+  "\x00" { *token = EOF; return 0; }
+  "[" { RETURNTOKEN( LEFT_SQUARE ); }
+  "]" { RETURNTOKEN( RIGHT_SQUARE ); }
+  dot { RETURNTOKEN( ID_DOT ); }
+  "=" { RETURNTOKEN( EQ ); }
+  "," { RETURNTOKEN( COMMA ); }
+  comment_start noteol* eol { RETURNTOKEN( COMMENT ); }
+  [a-zA-Z_][a-zA-Z0-9_]* { RETURNTOKEN( ID ); }
+  quote (escape_quote|string_bulk)* quote { RETURNTOKEN( STRING ); }
+  negate? digit* dot? digit+ { RETURNTOKEN( NUMBER ); }
+  [ \t\r\n]+ { SKIP(); }
+*/
+}
