@@ -1,9 +1,18 @@
 #include "toml-lemon.h"
 #include "toml-parser.h"
 
+#define COUNTLINES \
+  tokenData->end = p; \
+  char *line = tokenData->start; \
+  \
+  line = strchr( line, '\n' ); \
+  while ( line != NULL && line < tokenData->end ) { \
+    tokenData->line++; \
+    tokenData->lineStart = line + 1; \
+  }
 #define RETURNTOKEN( tokenid ) *token = tokenData->token = tokenid; \
   tokenData->end = p; \
-  return 1
+  return tokenid != EOF
 
 #define YYMARKER tokenData->marker
 #define SKIP(x) { tokenData->start = p; goto yy0; }
@@ -17,25 +26,35 @@ yy0:
   re2c:yyfill:enable = 0;
 
   comment_start = [#];
-  noteol = [^\n];
+  noteol = [^\n\x00];
   eol = [\n];
+  eof = [\x00];
   quote = ["];
   escape_quote = "\\\"";
-  string_bulk = [^"];
+  string_bulk = [^"\x00];
   digit = [0-9];
   negate = [\-];
   dot = "\.";
 
-  "\x00" { *token = EOF; return 0; }
+  eof { RETURNTOKEN( EOF ); }
   "[" { RETURNTOKEN( LEFT_SQUARE ); }
   "]" { RETURNTOKEN( RIGHT_SQUARE ); }
   dot { RETURNTOKEN( ID_DOT ); }
   "=" { RETURNTOKEN( EQ ); }
   "," { RETURNTOKEN( COMMA ); }
-  comment_start noteol* eol { RETURNTOKEN( COMMENT ); }
+  comment_start noteol* { RETURNTOKEN( COMMENT ); }
   [a-zA-Z_][a-zA-Z0-9_]* { RETURNTOKEN( ID ); }
-  quote (escape_quote|string_bulk)* quote { RETURNTOKEN( STRING ); }
+  quote (escape_quote|string_bulk)* quote {
+    COUNTLINES;
+    RETURNTOKEN( STRING );
+  }
   negate? digit* dot? digit+ { RETURNTOKEN( NUMBER ); }
-  [ \t\r\n]+ { SKIP(); }
+  [ \t\r]+ { SKIP(); }
+  [\n] { tokenData->line++; tokenData->lineStart = p; SKIP(); }
+
+  quote (escape_quote|string_bulk)* eof {
+    COUNTLINES;
+    RETURNTOKEN( EOF );
+  }
 */
 }

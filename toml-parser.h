@@ -7,17 +7,22 @@
 
 typedef struct TOMLParser {} *pTOMLParser;
 
-typedef struct TOMLParserState {
-  TOMLTable *rootTable;
-  TOMLTable *currentTable;
-} TOMLParserState;
-
 typedef struct TOMLToken {
   int token;
   char *marker;
   char *start;
   char *end;
+  int line;
+  char *lineStart;
 } TOMLToken;
+
+typedef struct TOMLParserState {
+  TOMLTable *rootTable;
+  TOMLTable *currentTable;
+  int errorCode;
+  TOMLError *errorObj;
+  TOMLToken *token;
+} TOMLParserState;
 
 void * TOMLParserAlloc( void * (*malloc)( size_t ) );
 void TOMLParserFree( void *, void (*free)( void * ) );

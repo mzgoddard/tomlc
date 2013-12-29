@@ -17,6 +17,39 @@ typedef enum {
   TOML_DOUBLE
 } TOMLNumberType;
 
+typedef enum {
+  TOML_SUCCESS,
+  TOML_ERROR_FILEIO,
+  TOML_ERROR_FATAL,
+  TOML_ERROR_TABLE_DEFINED,
+  TOML_ERROR_ENTRY_DEFINED,
+  TOML_ERROR_NO_VALUE,
+  TOML_ERROR_NO_EQ,
+  TOML_ERROR_INVALID_HEADER
+} TOMLErrorType;
+
+static char *TOMLErrorStrings[] = {
+  "TOML_SUCCESS",
+  "TOML_ERROR_FILEIO",
+  "TOML_ERROR_FATAL",
+  "TOML_ERROR_TABLE_DEFINED",
+  "TOML_ERROR_ENTRY_DEFINED",
+  "TOML_ERROR_NO_VALUE",
+  "TOML_ERROR_NO_EQ",
+  "TOML_ERROR_INVALID_HEADER"
+};
+
+static char *TOMLErrorDescription[] = {
+  NULL,
+  "Error reading from/writing to file.",
+  "Fatal error.",
+  "Table is already defined.",
+  "Entry is already defined.",
+  "Missing valid value.",
+  "Missing equal sign in table entry.",
+  "Incomplete table header."
+};
+
 // Arbitrary pointer to a TOML object.
 typedef void * TOMLRef;
 
@@ -61,8 +94,11 @@ typedef struct TOMLNumber {
 
 typedef struct TOMLError {
   TOMLType type;
+  int code;
   int lineNo;
   char * line;
+  char * message;
+  char * fullDescription;
 } TOMLError;
 
 /**********************
@@ -86,6 +122,7 @@ TOMLString * TOML_aString( char *content );
 TOMLString * TOML_aStringN( char *content, int n );
 TOMLNumber * TOML_anInt( int value );
 TOMLNumber * TOML_aDouble( double value );
+TOMLError * TOML_anError( int code );
 
 TOMLRef TOML_copy( TOMLRef );
 void TOML_free( TOMLRef );
@@ -119,19 +156,19 @@ void TOML_copyString( TOMLString *, int, char * );
  ************************/
 
 // Allocates a table filled with the parsed content of the file.
-// Returns 1 if there was an error.
-int TOML_load( char *filename, TOMLTable ** );
+// Returns non-zero if there was an error.
+int TOML_load( char *filename, TOMLTable **, TOMLError * );
 
 // Writes a stringified table to the indicated file.
-// Returns 1 if there was an error.
-int TOML_dump( char *filename, TOMLTable * );
+// Returns non-zero if there was an error.
+int TOML_dump( char *filename, TOMLTable *, TOMLError * );
 
 // Allocates a table filled with the parsed content of the buffer.
-// Returns 1 if there was an error.
-int TOML_parse( char *buffer, TOMLTable ** );
+// Returns non-zero if there was an error.
+int TOML_parse( char *buffer, TOMLTable **, TOMLError * );
 
 // Allocates a string filled a string version of the table.
-// Returns 1 if there was an error.
-int TOML_stringify( char **buffer, TOMLTable * );
+// Returns non-zero if there was an error.
+int TOML_stringify( char **buffer, TOMLRef, TOMLError * );
 
 #endif /* end of include guard: TOML_H_N6JCXECL */
