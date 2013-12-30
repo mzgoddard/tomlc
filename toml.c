@@ -245,7 +245,6 @@ TOMLRef TOML_find( TOMLRef self, ... ) {
   va_start( args, self );
 
   char *key;
-  int index;
 
   do {
     if ( basic->type == TOML_TABLE ) {
@@ -255,11 +254,11 @@ TOMLRef TOML_find( TOMLRef self, ... ) {
       }
       basic = self = TOMLTable_getKey( self, key );
     } else if ( basic->type == TOML_ARRAY ) {
-      index = va_arg( args, int );
-      if ( index == -1 ) {
+      key = va_arg( args, char * );
+      if ( key == NULL ) {
         break;
       }
-      basic = self = TOMLArray_getIndex( self, index );
+      basic = self = TOMLArray_getIndex( self, atoi( key ) );
     } else {
       break;
     }
@@ -289,7 +288,7 @@ TOMLRef TOMLTable_getKey( TOMLTable *self, char *key ) {
   for ( i = 0; i < self->keys->size; ++i ) {
     TOMLString *tableKey = TOMLArray_getIndex( self->keys, i );
     int minSize = keyLength < tableKey->size ? keyLength : tableKey->size;
-    if ( strncmp( tableKey->content, key, minSize ) == 0 ) {
+    if ( strncmp( tableKey->content, key, minSize + 1 ) == 0 ) {
       return TOMLArray_getIndex( self->values, i );
     }
   }
@@ -313,7 +312,7 @@ void TOMLTable_setKey( TOMLTable *self, char *key, TOMLRef value ) {
 }
 
 TOMLRef TOMLArray_getIndex( TOMLArray *self, int index ) {
-  return self->members[ index ];
+  return self->members && self->size > index ? self->members[ index ] : NULL;
 }
 
 void TOMLArray_setIndex( TOMLArray *self, int index, TOMLRef value ) {
@@ -362,6 +361,12 @@ double TOML_toDouble( TOMLNumber *self ) {
 TOMLToken * TOML_newToken( TOMLToken *token ) {
   TOMLToken *heapToken = malloc( sizeof(TOMLToken) );
   memcpy( heapToken, token, sizeof(TOMLToken) );
+
+  int size = token->end - token->start;
+  heapToken->tokenStr = malloc( size + 1 );
+  heapToken->tokenStr[ size ] = 0;
+  strncpy( heapToken->tokenStr, token->start, size );
+
   return heapToken;
 }
 
@@ -395,38 +400,87 @@ int TOML_load( char *filename, TOMLTable **dest, TOMLError *error ) {
   assert( *dest == NULL );
 
   FILE *fd = fopen( filename, "r" );
+  if ( fd == NULL ) {
+    if ( error ) {
+      error->code = TOML_ERROR_FILEIO;
+      error->lineNo = -1;
+      error->line = NULL;
+
+      int messageSize = strlen( TOMLErrorDescription[ error->code ] );
+      error->message =
+        malloc( messageSize + 1 );
+      strcpy( error->message, TOMLErrorDescription[ error->code ] );
+      error->message[ messageSize ] = 0;
+
+      int fullDescSize = messageSize + strlen( filename ) + 8;
+      error->fullDescription = malloc( fullDescSize + 1 );
+      snprintf(
+        error->fullDescription,
+        fullDescSize,
+        "%s File: %s",
+        error->message,
+        filename
+      );
+    }
+
+    return TOML_ERROR_FILEIO;
+  }
+
   int bufferSize = 0;
   char * buffer = _TOML_increaseBuffer( NULL, &bufferSize );
+  int copyBufferSize = 0;
+  char * copyBuffer = _TOML_increaseBuffer( NULL, &copyBufferSize );
   int read = fread( buffer, 1, bufferSize, fd );
   int incomplete = read == bufferSize;
 
   int hTokenId;
-  TOMLToken token = { 0, NULL, NULL, buffer, 0, buffer };
+  TOMLToken token = { 0, NULL, NULL, buffer, 0, buffer, NULL };
+  TOMLToken lastToken = token;
 
   TOMLTable *topTable = *dest = TOML_aTable( NULL, NULL );
   TOMLParserState state = { topTable, topTable, 0, error, &token };
 
   pTOMLParser parser = TOMLParserAlloc( malloc );
 
-  while ( state.errorCode == 0 && TOMLScan( token.end, &hTokenId, &token ) ) {
-    while ( token.end == buffer + bufferSize && incomplete ) {
-      int scanSize = token.end - token.start;
+  while (
+    state.errorCode == 0 && (
+      TOMLScan( token.end, &hTokenId, &token ) || incomplete
+    )
+  ) {
+    while ( token.end >= buffer + bufferSize && incomplete ) {
+      int lineSize = buffer + bufferSize - lastToken.lineStart;
 
-      if ( token.start == buffer ) {
+      if ( lastToken.lineStart == buffer ) {
         int oldBufferSize = bufferSize;
+        strncpy( copyBuffer, lastToken.lineStart, lineSize );
         buffer = _TOML_increaseBuffer( buffer, &bufferSize );
-
-        strncpy( buffer, buffer + oldBufferSize - scanSize, scanSize );
-        int read = fread( buffer + scanSize, 1, bufferSize - scanSize, fd );
-        int incomplete = read == bufferSize - scanSize;
-        TOMLScan( token.end, &hTokenId, &token );
+        copyBuffer = _TOML_increaseBuffer( copyBuffer, &copyBufferSize );
+        strncpy( buffer, copyBuffer, lineSize );
       } else {
-        strncpy( buffer, buffer + bufferSize - scanSize, scanSize );
-        int read = fread( buffer + scanSize, 1, bufferSize - scanSize, fd );
-        int incomplete = read == bufferSize - scanSize;
-        TOMLScan( token.end, &hTokenId, &token );
+        strncpy( copyBuffer, lastToken.lineStart, lineSize );
+        strncpy( buffer, copyBuffer, lineSize );
       }
+
+      int read = fread( buffer + lineSize, 1, bufferSize - lineSize, fd );
+      incomplete = read == bufferSize - lineSize;
+      if ( !incomplete ) {
+        buffer[ lineSize + read ] = 0;
+      }
+
+      token = lastToken;
+      token.end = buffer + ( token.end - token.lineStart );
+      token.lineStart = buffer;
+      lastToken = token;
+      TOMLScan( token.end, &hTokenId, &token );
     }
+
+    lastToken = token;
+
+    int tmpSize = token.end - token.start;
+    char *tmp = malloc( tmpSize + 1 );
+    strncpy( tmp, token.start, tmpSize );
+    tmp[ tmpSize ] = 0;
+    free( tmp );
 
     TOMLParser( parser, hTokenId, TOML_newToken( &token ), &state );
   }
@@ -437,13 +491,15 @@ int TOML_load( char *filename, TOMLTable **dest, TOMLError *error ) {
 
   TOMLParserFree( parser, free );
 
+  free( copyBuffer );
+  free( buffer );
+  fclose( fd );
+
   if ( state.errorCode != 0 ) {
     TOML_free( *dest );
     *dest = NULL;
     return state.errorCode;
   }
-
-  fclose( fd );
 
   return 0;
 }
@@ -454,7 +510,7 @@ int TOML_parse( char *buffer, TOMLTable **dest, TOMLError *error ) {
   assert( *dest == NULL );
 
   int hTokenId;
-  TOMLToken token = { 0, NULL, NULL, buffer, 0, buffer };
+  TOMLToken token = { 0, NULL, NULL, buffer, 0, buffer, NULL };
 
   TOMLTable *topTable = *dest = TOML_aTable( NULL, NULL );
   TOMLParserState state = { topTable, topTable, 0, error, &token };
@@ -528,7 +584,8 @@ void _TOML_stringifyTableHeader(
 ) {
   TOMLBasic *first = TOMLArray_getIndex( table->values, 0 );
   if (
-    first->type == TOML_TABLE || (
+    !first ||
+      first->type == TOML_TABLE || (
       first->type == TOML_ARRAY &&
       ((TOMLArray *) first)->memberType == TOML_TABLE
     )
@@ -615,8 +672,11 @@ int _TOML_stringify(
   // Cast to TOMLBasic to discover type.
   TOMLBasic *basic = src;
 
+  // if null
+  if ( src == NULL ) {
+    _TOML_stringifyText( self, "(null)", 6 );
   // if table
-  if ( basic->type == TOML_TABLE ) {
+  } else if ( basic->type == TOML_TABLE ) {
     TOMLTable *table = src;
 
     // loop keys
@@ -693,7 +753,7 @@ int _TOML_stringify(
     if ( number->numberType == TOML_INT ) {
       size = snprintf( numberBuffer, 15, "%d", number->intValue );
     } else {
-      size = snprintf( numberBuffer, 15, "%f", number->doubleValue );
+      size = snprintf( numberBuffer, 15, "%g", number->doubleValue );
     }
 
     // print number

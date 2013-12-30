@@ -47,11 +47,20 @@ def build(bld):
         'source': source,
         'includes': '.',
         'target': 'toml',
-        'install_path': '${PREFIX}/bin'
+        'install_path': '${PREFIX}/lib'
         # 'lib': 'antlr3c'
     }
     bld.stlib( **d )
     bld.shlib( **d )
+
+    binSource = list( source )
+    binSource.extend( bld.path.ant_glob('main.c') )
+    bld.program(
+        source=binSource,
+        includes='.',
+        target='toml',
+        install_path='${PREFIX}/bin'
+    )
 
     bld.program(
         source=bld.path.ant_glob('test.c'),

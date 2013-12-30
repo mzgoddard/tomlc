@@ -133,7 +133,7 @@ int main() {
     ok( index0 != NULL );
     TOMLRef planet = TOMLTable_getKey( index0, "planet" );
     ok( planet != NULL );
-    ok( TOML_find( table, "world", 0, "planet", NULL ) != NULL );
+    ok( TOML_find( table, "world", "0", "planet", NULL ) != NULL );
     TOML_free( table );
   }
 
@@ -147,7 +147,7 @@ int main() {
     );
     ok( table != NULL );
     is(
-      ((TOMLString *) TOML_find( table, "world", 1, "planet", NULL ))->content,
+      ((TOMLString *) TOML_find( table, "world", "1", "planet", NULL ))->content,
       "saturn"
     );
     TOML_free( table );

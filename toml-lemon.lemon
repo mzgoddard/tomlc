@@ -1,4 +1,4 @@
-%token_destructor { free($$); }
+%token_destructor { TOML_freeToken($$); }
 %extra_argument { TOMLParserState *state }
 %parse_failure { _TOML_fillError( state->token, state, TOML_ERROR_FATAL ); }
 
@@ -14,6 +14,12 @@ typedef struct table_id_node {
 } table_id_node;
 
 char * _TOML_newstr( TOMLToken *token ) {
+  if ( token->tokenStr ) {
+    char *buffer = token->tokenStr;
+    token->tokenStr = NULL;
+    return buffer;
+  }
+
   int size = token->end - token->start;
   char *buffer = malloc( size + 1 );
   strncpy( buffer, token->start, size );
@@ -44,7 +50,7 @@ void _TOML_fillError(
   if ( error ) {
     error->code = errorCode;
     error->lineNo = token->line;
-    error->line = _TOML_getline( token );
+    error->line = _TOML_getline( state->token );
 
     int messageSize = strlen( TOMLErrorDescription[ errorCode ] );
     error->message = malloc( messageSize + 1 );
@@ -66,6 +72,11 @@ void _TOML_fillError(
     );
     error->fullDescription = longMessage;
   }
+}
+
+void TOML_freeToken( TOMLToken *token ) {
+  free( token->tokenStr );
+  free( token );
 }
 }
 
@@ -89,6 +100,13 @@ table_header_2 ::= LEFT_SQUARE table_id(TABLE_ID) RIGHT_SQUARE . {
 
   for ( ; node; node = next ) {
     TOMLTable *tmpTable = TOMLTable_getKey( table, node->name );
+    TOMLBasic *tmpBasic = (TOMLBasic *) tmpTable;
+
+    if ( tmpTable && tmpBasic->type == TOML_ARRAY && node->next ) {
+      TOMLArray *tmpArray = (TOMLArray *) tmpBasic;
+      tmpTable = TOMLArray_getIndex( tmpArray, tmpArray->size - 1 );
+    }
+
     if ( !tmpTable ) {
       TOMLRef nextValue;
       if ( node->next ) {
@@ -119,6 +137,13 @@ table_header_2 ::= table_id(TABLE_ID) . {
 
   for ( ; node; node = next ) {
     TOMLTable *tmpTable = TOMLTable_getKey( table, node->name );
+    TOMLBasic *tmpBasic = (TOMLBasic *) tmpTable;
+
+    if ( tmpTable && tmpBasic->type == TOML_ARRAY ) {
+      TOMLArray *tmpArray = (TOMLArray *) tmpBasic;
+      tmpTable = TOMLArray_getIndex( tmpArray, tmpArray->size - 1 );
+    }
+
     if ( tmpTable && node->next == NULL ) {
       _TOML_fillError( state->token, state, TOML_ERROR_TABLE_DEFINED );
     } else if ( !tmpTable ) {
@@ -135,33 +160,36 @@ table_header_2 ::= table_id(TABLE_ID) . {
 }
 
 %type table_id { table_id_node * }
-table_id(TABLE_ID) ::= table_id(LAST_ID) ID_DOT ID(ID) . {
+table_id(TABLE_ID) ::= table_id(LAST_ID) ID_DOT id(ID) . {
   table_id_node *node = malloc( sizeof(table_id_node) );
-  node->name = _TOML_newstr( ID );
+  node->name = ID;
   node->first = LAST_ID->first;
   node->next = NULL;
   LAST_ID->next = node;
   TABLE_ID = node;
 }
-table_id(TABLE_ID) ::= ID(ID) . {
+table_id(TABLE_ID) ::= id(ID) . {
   table_id_node *node = malloc( sizeof(table_id_node) );
-  node->name = _TOML_newstr( ID );
+  node->name = ID;
   node->first = node;
   node->next = NULL;
   TABLE_ID = node;
 }
 
-entry ::= ID(ID) EQ value(VALUE) . {
-  char *tmp = _TOML_newstr( ID );
-  if ( tmp != NULL || VALUE != NULL ) {
-    TOMLRef oldValue = TOMLTable_getKey( state->currentTable, tmp );
+entry ::= id(ID) EQ value(VALUE) . {
+  if ( ID != NULL || VALUE != NULL ) {
+    TOMLRef oldValue = TOMLTable_getKey( state->currentTable, ID );
     if ( oldValue != NULL ) {
-      _TOML_fillError( ID, state, TOML_ERROR_ENTRY_DEFINED );
+      _TOML_fillError( state->token, state, TOML_ERROR_ENTRY_DEFINED );
     } else {
-      TOMLTable_setKey( state->currentTable, tmp, VALUE );
+      TOMLTable_setKey( state->currentTable, ID, VALUE );
     }
   }
-  free( tmp );
+  free( ID );
+}
+
+id(ID) ::= ID(TOKEN) . {
+  ID = _TOML_newstr( TOKEN );
 }
 
 value(VALUE) ::= array(ARRAY) . { VALUE = ARRAY; }
@@ -255,10 +283,9 @@ string(STR) ::= STRING(STR_TOKEN) . {
 }
 
 number(NUMBER) ::= NUMBER(NUMBER_TOKEN) . {
-  TOMLToken *token = NUMBER_TOKEN;
-  char *tmp = _TOML_newstr( token );
+  char *tmp = _TOML_newstr( NUMBER_TOKEN );
 
-  if ( strchr( token->start, '.' ) != NULL ) {
+  if ( strchr( tmp, '.' ) != NULL ) {
     NUMBER = TOML_aDouble( atof( tmp ) );
   } else {
     NUMBER = TOML_anInt( atoi( tmp ) );
@@ -277,10 +304,12 @@ table_header ::= LEFT_SQUARE(SQUARE) error . {
   _TOML_fillError( SQUARE, state, TOML_ERROR_INVALID_HEADER );
 }
 
-entry ::= ID(ID) EQ error . {
-  _TOML_fillError( ID, state, TOML_ERROR_NO_VALUE );
+entry ::= id(ID) EQ error . {
+  _TOML_fillError( state->token, state, TOML_ERROR_NO_VALUE );
+  free( ID );
 }
 
-entry ::= ID(ID) error . {
-  _TOML_fillError( ID, state, TOML_ERROR_NO_EQ );
+entry ::= id(ID) error . {
+  _TOML_fillError( state->token, state, TOML_ERROR_NO_EQ );
+  free( ID );
 }

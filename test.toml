@@ -1,5 +1,26 @@
 # Hello World
 [player]
+particles = [
+  [ 0, -5 ],
+  [ 4.330127018922194, -2.4999999999999996 ],
+  [ -4.330127018922194, -2.4999999999999996 ]
+]
 size = 10
 maxOxygen = 2048
 maxResource = 256
+
+[[en.text]]
+characterImage = "text-only"
+
+[en.text.details]
+who = "me"
+
+[[en.text.subtext]]
+  text = "Hello world. I am fine today."
+
+[[en.text.subtext]]
+  text = "Hmm ... what's with the monitor."
+
+[[en.text]]
+characterImage = "face-happy"
+text = "Oh there we go. Video re-established."

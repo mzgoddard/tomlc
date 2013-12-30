@@ -1,6 +1,8 @@
 #ifndef TOML_H_N6JCXECL
 #define TOML_H_N6JCXECL
 
+#include <stdlib.h>
+
 // Values identifying what the TOML object is.
 typedef enum {
   TOML_NOTYPE,
@@ -94,7 +96,7 @@ typedef struct TOMLNumber {
 
 typedef struct TOMLError {
   TOMLType type;
-  int code;
+  TOMLErrorType code;
   int lineNo;
   char * line;
   char * message;
@@ -161,7 +163,8 @@ int TOML_load( char *filename, TOMLTable **, TOMLError * );
 
 // Writes a stringified table to the indicated file.
 // Returns non-zero if there was an error.
-int TOML_dump( char *filename, TOMLTable *, TOMLError * );
+// TODO: Implement TOML_dump.
+// int TOML_dump( char *filename, TOMLTable *, TOMLError * );
 
 // Allocates a table filled with the parsed content of the buffer.
 // Returns non-zero if there was an error.

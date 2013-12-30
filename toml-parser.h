@@ -14,6 +14,7 @@ typedef struct TOMLToken {
   char *end;
   int line;
   char *lineStart;
+  char *tokenStr;
 } TOMLToken;
 
 typedef struct TOMLParserState {
