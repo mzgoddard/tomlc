@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,8 +33,10 @@ TOMLRef TOML_alloc( TOMLType type ) {
       return TOML_anArray( TOML_NOTYPE );
     case TOML_STRING:
       return TOML_aString( "" );
-    case TOML_NUMBER:
+    case TOML_INT:
       return TOML_anInt( 0 );
+    case TOML_DOUBLE:
+      return TOML_aDouble( 0 );
     default:
       return NULL;
   }
@@ -113,8 +116,8 @@ TOMLString * TOML_aStringN( char *content, int n ) {
 
 TOMLNumber * TOML_anInt( int value ) {
   TOMLNumber *self = malloc( sizeof(TOMLNumber) );
-  self->type = TOML_NUMBER;
-  self->numberType = TOML_INT;
+  self->type = TOML_INT;
+  // self->numberType = TOML_INT;
   self->intValue = value;
 
   return self;
@@ -122,8 +125,8 @@ TOMLNumber * TOML_anInt( int value ) {
 
 TOMLNumber * TOML_aDouble( double value ) {
   TOMLNumber *self = malloc( sizeof(TOMLNumber) );
-  self->type = TOML_NUMBER;
-  self->numberType = TOML_DOUBLE;
+  self->type = TOML_DOUBLE;
+  // self->numberType = TOML_DOUBLE;
   self->doubleValue = value;
 
   return self;
@@ -185,11 +188,11 @@ TOMLRef TOML_copy( TOMLRef self ) {
     newString->content = malloc( string->size + 1 );
     strncpy( newString->content, string->content, string->size + 1 );
     return newString;
-  } else if ( basic->type == TOML_NUMBER ) {
+  } else if ( basic->type == TOML_INT || basic->type == TOML_DOUBLE ) {
     TOMLNumber *number = (TOMLNumber *) self;
     TOMLNumber *newNumber = malloc( sizeof(TOMLNumber) );
-    newNumber->type = TOML_NUMBER;
-    newNumber->numberType = number->numberType;
+    newNumber->type = number->type;
+    // newNumber->numberType = number->numberType;
     memcpy( newNumber->bytes, number->bytes, 8 );
     return newNumber;
   } else if ( basic->type == TOML_ERROR ) {
@@ -237,6 +240,11 @@ void TOML_free( TOMLRef self ) {
 int TOML_isType( TOMLRef self, TOMLType type ) {
   TOMLBasic *basic = (TOMLBasic *) self;
   return basic->type == type;
+}
+
+int TOML_isNumber( TOMLRef self ) {
+  TOMLBasic *basic = (TOMLBasic *) self;
+  return basic->type == TOML_INT || basic->type == TOML_DOUBLE;
 }
 
 TOMLRef TOML_find( TOMLRef self, ... ) {
@@ -339,7 +347,7 @@ void TOMLArray_append( TOMLArray *self, TOMLRef value ) {
   free( oldMembers );
 }
 
-#define RETURN_VALUE switch ( self->numberType ) { \
+#define RETURN_VALUE switch ( self->type ) { \
     case TOML_INT: \
       return self->intValue; \
     case TOML_DOUBLE: \
@@ -744,14 +752,16 @@ int _TOML_stringify(
     // print string
     _TOML_stringifyText( self, string->content, string->size );
   // if number
-  } else if ( basic->type == TOML_NUMBER ) {
+  } else if ( TOML_isNumber( basic ) ) {
     TOMLNumber *number = src;
     char numberBuffer[ 16 ];
     memset( numberBuffer, 0, 16 );
 
     int size;
-    if ( number->numberType == TOML_INT ) {
+    if ( number->type == TOML_INT ) {
       size = snprintf( numberBuffer, 15, "%d", number->intValue );
+    } else if ( fmod( number->doubleValue, 1 ) == 0 ) {
+      size = snprintf( numberBuffer, 15, "%.1f", number->doubleValue );
     } else {
       size = snprintf( numberBuffer, 15, "%g", number->doubleValue );
     }

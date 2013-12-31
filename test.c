@@ -26,15 +26,13 @@ int main() {
 
   { /** alloc_array **/
     note( "alloc_array" );
-    TOMLArray *array = TOML_anArray( TOML_NUMBER,
+    TOMLArray *array = TOML_anArray( TOML_INT,
       TOML_anInt( 2 ),
-      TOML_aDouble( 3.5 ),
+      TOML_anInt( 3 ),
       NULL
     );
     ok( TOML_toInt( TOMLArray_getIndex( array, 0 ) ) == 2, "array[0] is 2" );
-    ok( TOML_toDouble( TOMLArray_getIndex( array, 1 ) ) == 3.5,
-      "array[1] is 3.5"
-    );
+    ok( TOML_toInt( TOMLArray_getIndex( array, 1 ) ) == 3, "array[1] is 3" );
     TOML_free( array );
   }
 

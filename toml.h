@@ -5,19 +5,20 @@
 
 // Values identifying what the TOML object is.
 typedef enum {
-  TOML_NOTYPE,
-  TOML_TABLE,
-  TOML_ARRAY,
-  TOML_STRING,
-  TOML_NUMBER,
-  TOML_ERROR
+  TOML_NOTYPE=0,
+  TOML_TABLE=1,
+  TOML_ARRAY=2,
+  TOML_STRING=3,
+  TOML_INT=4,
+  TOML_DOUBLE=5,
+  TOML_ERROR=6
 } TOMLType;
 
 // Values identifying what the underlying number type is.
-typedef enum {
-  TOML_INT,
-  TOML_DOUBLE
-} TOMLNumberType;
+// typedef enum {
+//   TOML_INT,
+//   TOML_DOUBLE
+// } TOMLNumberType;
 
 typedef enum {
   TOML_SUCCESS,
@@ -27,7 +28,8 @@ typedef enum {
   TOML_ERROR_ENTRY_DEFINED,
   TOML_ERROR_NO_VALUE,
   TOML_ERROR_NO_EQ,
-  TOML_ERROR_INVALID_HEADER
+  TOML_ERROR_INVALID_HEADER,
+  TOML_ERROR_ARRAY_MEMBER_MISMATCH
 } TOMLErrorType;
 
 static char *TOMLErrorStrings[] = {
@@ -38,7 +40,8 @@ static char *TOMLErrorStrings[] = {
   "TOML_ERROR_ENTRY_DEFINED",
   "TOML_ERROR_NO_VALUE",
   "TOML_ERROR_NO_EQ",
-  "TOML_ERROR_INVALID_HEADER"
+  "TOML_ERROR_INVALID_HEADER",
+  "TOML_ERROR_ARRAY_MEMBER_MISMATCH"
 };
 
 static char *TOMLErrorDescription[] = {
@@ -49,7 +52,8 @@ static char *TOMLErrorDescription[] = {
   "Entry is already defined.",
   "Missing valid value.",
   "Missing equal sign in table entry.",
-  "Incomplete table header."
+  "Incomplete table header.",
+  "Array member must be the same type as other members."
 };
 
 // Arbitrary pointer to a TOML object.
@@ -86,7 +90,6 @@ typedef struct TOMLString {
 // A TOML number.
 typedef struct TOMLNumber {
   TOMLType type;
-  TOMLNumberType numberType;
   union {
     int intValue;
     double doubleValue;
@@ -134,6 +137,7 @@ void TOML_free( TOMLRef );
  *****************/
 
 int TOML_isType( TOMLRef, TOMLType );
+int TOML_isNumber( TOMLRef );
 
 TOMLRef TOML_find( TOMLRef, ... );
 

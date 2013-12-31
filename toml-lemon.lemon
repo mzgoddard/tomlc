@@ -226,7 +226,11 @@ string_members(STRING_ARY) ::= string(STRING) . {
   STRING_ARY = TOML_anArray( TOML_STRING, STRING, NULL );
 }
 
+%type number_members { TOMLArray * }
 number_members(NEW_ARY) ::= number_members(OLD_ARY) comma number(NUMBER) . {
+  if ( OLD_ARY->memberType != NUMBER->type ) {
+    _TOML_fillError( state->token, state, TOML_ERROR_ARRAY_MEMBER_MISMATCH );
+  }
   NEW_ARY = OLD_ARY;
   TOMLArray_append( NEW_ARY, NUMBER );
 }
@@ -234,7 +238,7 @@ number_members(NEW_ARY) ::= number_members(OLD_ARY) comma . {
   NEW_ARY = OLD_ARY;
 }
 number_members(NUMBER_ARY) ::= number(NUMBER) . {
-  NUMBER_ARY = TOML_anArray( TOML_NUMBER, NUMBER, NULL );
+  NUMBER_ARY = TOML_anArray( NUMBER->type, NUMBER, NULL );
 }
 
 comma ::= COMMA .
@@ -282,6 +286,7 @@ string(STR) ::= STRING(STR_TOKEN) . {
   free( tmp );
 }
 
+%type number { TOMLNumber * }
 number(NUMBER) ::= NUMBER(NUMBER_TOKEN) . {
   char *tmp = _TOML_newstr( NUMBER_TOKEN );
 
