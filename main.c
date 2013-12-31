@@ -45,10 +45,10 @@ int available_option( struct option *head, int i ) {
 
 #define FLAG( shortOpt, longOpt, optionName, helpText ) \
   int optionName = 0; \
-  { \
   struct option optionName ## Option = { \
-    shortOpt, longOpt, #optionName, helpText, NULL, -1 \
+    shortOpt, longOpt, #optionName, helpText, NULL, -1, 0 \
   }; \
+  { \
   add_option( &optionhead, &optionName ## Option ); \
   \
   for ( int i = 1; i < argc; ++i ) { \
@@ -66,10 +66,10 @@ int available_option( struct option *head, int i ) {
 
 #define STROPTION( shortOpt, longOpt, optionName, helpText ) \
   char *optionName = NULL; \
-  { \
   struct option optionName ## Option = { \
-    shortOpt, longOpt, #optionName, helpText, NULL, -1 \
+    shortOpt, longOpt, #optionName, helpText, NULL, -1, 0 \
   }; \
+  { \
   add_option( &optionhead, &optionName ## Option ); \
   \
   for ( int i = 1; i < argc; ++i ) { \

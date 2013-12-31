@@ -197,6 +197,7 @@ value(VALUE) ::= array(ARRAY) . { VALUE = (TOMLBasic *) ARRAY; }
 value(VALUE) ::= string(STRING) . { VALUE = (TOMLBasic *) STRING; }
 value(VALUE) ::= number(NUMBER) . { VALUE = (TOMLBasic *) NUMBER; }
 value(VALUE) ::= boolean(BOOLEAN) . { VALUE = (TOMLBasic *) BOOLEAN; }
+value(VALUE) ::= date(DATE) . { VALUE = (TOMLBasic *) DATE; }
 
 array(ARY) ::= LEFT_SQUARE members(OLD_ARY) RIGHT_SQUARE . {
   ARY = OLD_ARY;
@@ -284,6 +285,22 @@ boolean(BOOLEAN) ::= TRUE . {
 
 boolean(BOOLEAN) ::= FALSE . {
   BOOLEAN = TOML_aBoolean( 0 );
+}
+
+%type date { TOMLDate * }
+date(DATE) ::= DATE(DATE_TOKEN) . {
+  int year;
+  int month;
+  int day;
+  int hour;
+  int minute;
+  int second;
+  sscanf(
+    ((TOMLToken *) DATE_TOKEN)->tokenStr,
+    "%d-%d-%dT%d:%d:%dZ",
+    &year, &month, &day, &hour, &minute, &second
+  );
+  DATE = TOML_aDate( year, month, day, hour, minute, second );
 }
 
 /**

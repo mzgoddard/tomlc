@@ -4,7 +4,7 @@
 #include "toml.h"
 
 int main() {
-  plan( 48 );
+  plan( 64 );
 
   note( "\n** memory management **" );
 
@@ -22,6 +22,22 @@ int main() {
     TOML_copyString( string, 256, string_buffer );
     is( string_buffer, "Why, yes.", "string is correct" );
     TOML_free( string );
+  }
+
+  { /** alloc_date **/
+    note( "alloc_date" );
+    TOMLDate *date = TOML_aDate( 2013, 11, 20, 14, 30, 0 );
+    ok( date->sinceEpoch == 1387549800 );
+    TOML_free( date );
+
+    date = TOML_anEpochDate( 1387549800 );
+    ok( date->year == 2013 );
+    ok( date->month == 11 );
+    ok( date->day == 20 );
+    ok( date->hour == 14 );
+    ok( date->minute == 30 );
+    ok( date->second == 0 );
+    TOML_free( date );
   }
 
   { /** alloc_array **/
@@ -93,6 +109,15 @@ int main() {
     ok( TOML_isType( TOML_find( table, "world", NULL ), TOML_BOOLEAN ) );
     ok( TOML_find( table, "moon", NULL ) != NULL );
     ok( TOML_isType( TOML_find( table, "moon", NULL ), TOML_BOOLEAN ) );
+    TOML_free( table );
+  }
+
+  { /** parse_entry_date **/
+    note( "parse_entry_date" );
+    TOMLTable *table = NULL;
+    TOML_parse( "start = 2013-12-20T14:30:00Z", &table, NULL );
+    ok( table != NULL );
+    ok( TOML_find( table, "start", NULL ) != NULL );
     TOML_free( table );
   }
 
@@ -242,6 +267,17 @@ int main() {
     char *buffer;
     TOML_stringify( &buffer, table, NULL );
     is( buffer, "world = true\nmoon = false\n" );
+    free( buffer );
+    TOML_free( table );
+  }
+
+  { /** stringify_date **/
+    note( "stringify_date" );
+    TOMLTable *table = NULL;
+    TOML_parse( "date = 2013-12-20T14:30:00Z", &table, NULL );
+    char *buffer;
+    TOML_stringify( &buffer, table, NULL );
+    is( buffer, "date = 2013-12-20T14:30:00Z\n" );
     free( buffer );
     TOML_free( table );
   }

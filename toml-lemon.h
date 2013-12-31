@@ -10,3 +10,4 @@
 #define NUMBER                         10
 #define TRUE                           11
 #define FALSE                          12
+#define DATE                           13

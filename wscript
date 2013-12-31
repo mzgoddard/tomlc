@@ -11,6 +11,7 @@ def configure(ctx):
     ctx.load('compiler_c')
 
     ctx.env.append_value( 'CFLAGS', '-g' )
+    ctx.env.append_value( 'CFLAGS', '-O2' )
 
     ctx.start_msg( 'init submodules' )
     gitStatus = ctx.exec_command( 'git submodule init && git submodule update' )

@@ -12,6 +12,7 @@ typedef enum {
   TOML_INT,
   TOML_DOUBLE,
   TOML_BOOLEAN,
+  TOML_DATE,
   TOML_ERROR
 } TOMLType;
 
@@ -104,6 +105,18 @@ typedef struct TOMLBoolean {
   int isTrue;
 } TOMLBoolean;
 
+// A TOML date.
+typedef struct TOMLDate {
+  TOMLType type;
+  long int sinceEpoch;
+  int year;
+  int month;
+  int day;
+  int hour;
+  int minute;
+  int second;
+} TOMLDate;
+
 typedef struct TOMLError {
   TOMLType type;
   TOMLErrorType code;
@@ -135,6 +148,8 @@ TOMLString * TOML_aStringN( char *content, int n );
 TOMLNumber * TOML_anInt( int value );
 TOMLNumber * TOML_aDouble( double value );
 TOMLBoolean * TOML_aBoolean( int truth );
+TOMLDate * TOML_aDate( int, int, int, int, int, int );
+TOMLDate * TOML_anEpochDate( long int stamp );
 TOMLError * TOML_anError( int code );
 
 TOMLRef TOML_copy( TOMLRef );

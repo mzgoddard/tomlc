@@ -33,6 +33,7 @@ yy0:
   escape_quote = "\\\"";
   string_bulk = [^"\x00];
   digit = [0-9];
+  digit2 = digit digit;
   negate = [\-];
   dot = "\.";
 
@@ -50,6 +51,9 @@ yy0:
   quote (escape_quote|string_bulk)* quote {
     COUNTLINES;
     RETURNTOKEN( STRING );
+  }
+  digit{4} "-" digit2 "-" digit2 "T" digit2 ":" digit2 ":" digit2 "Z" {
+    RETURNTOKEN( DATE );
   }
   negate? digit* dot? digit+ { RETURNTOKEN( NUMBER ); }
   [ \t\r]+ { SKIP(); }

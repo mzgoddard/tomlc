@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 // #include <antlr3.h>
 
@@ -139,6 +140,72 @@ TOMLBoolean * TOML_aBoolean( int truth ) {
   return self;
 }
 
+int _TOML_isLeapYear( int year ) {
+  if ( year % 400 == 0 ) {
+    return 1;
+  } else if ( year % 100 == 0 ) {
+    return 0;
+  } else if ( year % 4 == 0 ) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+TOMLDate * TOML_aDate(
+  int year, int month, int day, int hour, int minute, int second
+) {
+  TOMLDate *self = malloc( sizeof(TOMLDate) );
+  self->type = TOML_DATE;
+
+  self->year = year;
+  self->month = month;
+  self->day = day;
+
+  self->hour = hour;
+  self->minute = minute;
+  self->second = second;
+
+  struct tm _time = {
+    second,
+    minute,
+    hour,
+    day,
+    month,
+    year - 1900
+  };
+
+  // local time
+  time_t localEpoch = mktime( &_time );
+  // gm time
+  _time = *gmtime( &localEpoch );
+  time_t gmEpoch = mktime( &_time );
+
+  double diff = difftime( localEpoch, gmEpoch );
+
+  // Adjust the localEpock made by mktime to a gmt epoch.
+  self->sinceEpoch = localEpoch + diff;
+
+  return self;
+}
+
+TOMLDate * TOML_anEpochDate( long int stamp ) {
+  TOMLDate *self = malloc( sizeof(TOMLDate) );
+  self->type = TOML_DATE;
+  self->sinceEpoch = stamp;
+
+  struct tm _time = *gmtime( &stamp );
+
+  self->second = _time.tm_sec;
+  self->minute = _time.tm_min;
+  self->hour = _time.tm_hour;
+  self->day = _time.tm_mday;
+  self->month = _time.tm_mon;
+  self->year = _time.tm_year + 1900;
+
+  return self;
+}
+
 TOMLError * TOML_anError( int code ) {
   TOMLError *self = malloc( sizeof(TOMLError) );
   self->type = TOML_ERROR;
@@ -208,6 +275,11 @@ TOMLRef TOML_copy( TOMLRef self ) {
     newBoolean->type = boolean->type;
     newBoolean->isTrue = boolean->isTrue;
     return newBoolean;
+  } else if ( basic->type == TOML_DATE ) {
+    TOMLDate *date = (TOMLDate *) self;
+    TOMLDate *newDate = malloc( sizeof(TOMLDate) );
+    *newDate = *date;
+    return newDate;
   } else if ( basic->type == TOML_ERROR ) {
     TOMLError *error = (TOMLError *) self;
     TOMLError *newError = malloc( sizeof(TOMLError) );
@@ -789,6 +861,24 @@ int _TOML_stringify(
     } else {
       _TOML_stringifyText( self, "false", 5 );
     }
+  } else if ( basic->type == TOML_DATE ) {
+    TOMLDate *date = (TOMLDate *) basic;
+    char numberBuffer[ 16 ];
+    int size;
+
+    #define STRINGIFY_DATE_SECTION( format, part, spacer ) \
+      size = snprintf( numberBuffer, 15, format, date->part ); \
+      _TOML_stringifyText( self, numberBuffer, size ); \
+      _TOML_stringifyText( self, spacer, 1 )
+
+    STRINGIFY_DATE_SECTION( "%d", year, "-" );
+    STRINGIFY_DATE_SECTION( "%0.2d", month, "-" );
+    STRINGIFY_DATE_SECTION( "%0.2d", day, "T" );
+    STRINGIFY_DATE_SECTION( "%0.2d", hour, ":" );
+    STRINGIFY_DATE_SECTION( "%0.2d", minute, ":" );
+    STRINGIFY_DATE_SECTION( "%0.2d", second, "Z" );
+
+    #undef STRINGIFY_DATE_SECTION
   } else {
     assert( 0 );
   }
