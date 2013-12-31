@@ -132,6 +132,13 @@ TOMLNumber * TOML_aDouble( double value ) {
   return self;
 }
 
+TOMLBoolean * TOML_aBoolean( int truth ) {
+  TOMLBoolean *self = malloc( sizeof(TOMLBoolean) );
+  self->type = TOML_BOOLEAN;
+  self->isTrue = truth;
+  return self;
+}
+
 TOMLError * TOML_anError( int code ) {
   TOMLError *self = malloc( sizeof(TOMLError) );
   self->type = TOML_ERROR;
@@ -195,6 +202,12 @@ TOMLRef TOML_copy( TOMLRef self ) {
     // newNumber->numberType = number->numberType;
     memcpy( newNumber->bytes, number->bytes, 8 );
     return newNumber;
+  } else if ( basic->type == TOML_BOOLEAN ) {
+    TOMLBoolean *boolean = (TOMLBoolean *) self;
+    TOMLBoolean *newBoolean = malloc( sizeof(TOMLBoolean) );
+    newBoolean->type = boolean->type;
+    newBoolean->isTrue = boolean->isTrue;
+    return newBoolean;
   } else if ( basic->type == TOML_ERROR ) {
     TOMLError *error = (TOMLError *) self;
     TOMLError *newError = malloc( sizeof(TOMLError) );
@@ -768,6 +781,14 @@ int _TOML_stringify(
 
     // print number
     _TOML_stringifyText( self, numberBuffer, size );
+  } else if ( basic->type == TOML_BOOLEAN ) {
+    TOMLBoolean *boolean = (TOMLBoolean *) basic;
+
+    if ( boolean->isTrue ) {
+      _TOML_stringifyText( self, "true", 4 );
+    } else {
+      _TOML_stringifyText( self, "false", 5 );
+    }
   } else {
     assert( 0 );
   }

@@ -8,3 +8,5 @@
 #define COMMA                           8
 #define STRING                          9
 #define NUMBER                         10
+#define TRUE                           11
+#define FALSE                          12

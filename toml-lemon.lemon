@@ -192,53 +192,31 @@ id(ID) ::= ID(TOKEN) . {
   ID = _TOML_newstr( TOKEN );
 }
 
-value(VALUE) ::= array(ARRAY) . { VALUE = ARRAY; }
-value(VALUE) ::= string(STRING) . { VALUE = STRING; }
-value(VALUE) ::= number(NUMBER) . { VALUE = NUMBER; }
+%type value { TOMLBasic * }
+value(VALUE) ::= array(ARRAY) . { VALUE = (TOMLBasic *) ARRAY; }
+value(VALUE) ::= string(STRING) . { VALUE = (TOMLBasic *) STRING; }
+value(VALUE) ::= number(NUMBER) . { VALUE = (TOMLBasic *) NUMBER; }
+value(VALUE) ::= boolean(BOOLEAN) . { VALUE = (TOMLBasic *) BOOLEAN; }
 
 array(ARY) ::= LEFT_SQUARE members(OLD_ARY) RIGHT_SQUARE . {
   ARY = OLD_ARY;
 }
-members(ARY) ::= array_members(OLD_ARY) . { ARY = OLD_ARY; }
-members(ARY) ::= string_members(OLD_ARY) . { ARY = OLD_ARY; }
-members(ARY) ::= number_members(OLD_ARY) . { ARY = OLD_ARY; }
+members(ARY) ::= value_members(OLD_ARY) . { ARY = OLD_ARY; }
 members(ARY) ::= . { ARY = TOML_anArray( TOML_NOTYPE, NULL ); }
 
-array_members(NEW_ARY) ::= array_members(OLD_ARY) comma array(ARRAY) . {
-  NEW_ARY = OLD_ARY;
-  TOMLArray_append( NEW_ARY, ARRAY );
-}
-array_members(NEW_ARY) ::= array_members(OLD_ARY) comma . {
-  NEW_ARY = OLD_ARY;
-}
-array_members(ARRAY_ARRAY) ::= array(ARRAY) . {
-  ARRAY_ARRAY = TOML_anArray( TOML_ARRAY, ARRAY, NULL );
-}
-
-string_members(NEW_ARY) ::= string_members(OLD_ARY) comma string(STRING) . {
-  NEW_ARY = OLD_ARY;
-  TOMLArray_append( NEW_ARY, STRING );
-}
-string_members(NEW_ARY) ::= string_members(OLD_ARY) comma . {
-  NEW_ARY = OLD_ARY;
-}
-string_members(STRING_ARY) ::= string(STRING) . {
-  STRING_ARY = TOML_anArray( TOML_STRING, STRING, NULL );
-}
-
-%type number_members { TOMLArray * }
-number_members(NEW_ARY) ::= number_members(OLD_ARY) comma number(NUMBER) . {
-  if ( OLD_ARY->memberType != NUMBER->type ) {
+%type value_members { TOMLArray * }
+value_members(NEW_ARY) ::= value_members(OLD_ARY) comma value(VALUE) . {
+  if ( OLD_ARY->memberType != VALUE->type ) {
     _TOML_fillError( state->token, state, TOML_ERROR_ARRAY_MEMBER_MISMATCH );
   }
   NEW_ARY = OLD_ARY;
-  TOMLArray_append( NEW_ARY, NUMBER );
+  TOMLArray_append( NEW_ARY, VALUE );
 }
-number_members(NEW_ARY) ::= number_members(OLD_ARY) comma . {
+value_members(NEW_ARY) ::= value_members(OLD_ARY) comma . {
   NEW_ARY = OLD_ARY;
 }
-number_members(NUMBER_ARY) ::= number(NUMBER) . {
-  NUMBER_ARY = TOML_anArray( NUMBER->type, NUMBER, NULL );
+value_members(ARY) ::= value(VALUE) . {
+  ARY = TOML_anArray( VALUE->type, VALUE, NULL );
 }
 
 comma ::= COMMA .
@@ -297,6 +275,15 @@ number(NUMBER) ::= NUMBER(NUMBER_TOKEN) . {
   }
 
   free( tmp );
+}
+
+%type boolean { TOMLBoolean * }
+boolean(BOOLEAN) ::= TRUE . {
+  BOOLEAN = TOML_aBoolean( 1 );
+}
+
+boolean(BOOLEAN) ::= FALSE . {
+  BOOLEAN = TOML_aBoolean( 0 );
 }
 
 /**

@@ -5,13 +5,14 @@
 
 // Values identifying what the TOML object is.
 typedef enum {
-  TOML_NOTYPE=0,
-  TOML_TABLE=1,
-  TOML_ARRAY=2,
-  TOML_STRING=3,
-  TOML_INT=4,
-  TOML_DOUBLE=5,
-  TOML_ERROR=6
+  TOML_NOTYPE,
+  TOML_TABLE,
+  TOML_ARRAY,
+  TOML_STRING,
+  TOML_INT,
+  TOML_DOUBLE,
+  TOML_BOOLEAN,
+  TOML_ERROR
 } TOMLType;
 
 // Values identifying what the underlying number type is.
@@ -97,6 +98,12 @@ typedef struct TOMLNumber {
   };
 } TOMLNumber;
 
+// A TOML boolean.
+typedef struct TOMLBoolean {
+  TOMLType type;
+  int isTrue;
+} TOMLBoolean;
+
 typedef struct TOMLError {
   TOMLType type;
   TOMLErrorType code;
@@ -127,6 +134,7 @@ TOMLString * TOML_aString( char *content );
 TOMLString * TOML_aStringN( char *content, int n );
 TOMLNumber * TOML_anInt( int value );
 TOMLNumber * TOML_aDouble( double value );
+TOMLBoolean * TOML_aBoolean( int truth );
 TOMLError * TOML_anError( int code );
 
 TOMLRef TOML_copy( TOMLRef );

@@ -6,7 +6,7 @@
 int main() {
   plan( 48 );
 
-  note( "** memory management **" );
+  note( "\n** memory management **" );
 
   { /** alloc_number **/
     note( "alloc_number" );
@@ -49,7 +49,7 @@ int main() {
     TOML_free( table );
   }
 
-  note( "** parse **" );
+  note( "\n** parse **" );
 
   { /** parse_entry_string **/
     note( "parse_entry_string" );
@@ -81,6 +81,18 @@ int main() {
     ok( table != NULL );
     ok( TOMLTable_getKey( table, "world" ) != NULL );
     ok( TOML_toDouble( TOMLTable_getKey( table, "world" ) ) == 1.23 );
+    TOML_free( table );
+  }
+
+  { /** parse_entry_boolean **/
+    note( "parse_entry_boolean" );
+    TOMLTable *table = NULL;
+    TOML_parse( "world = true\nmoon = false", &table, NULL );
+    ok( table != NULL );
+    ok( TOML_find( table, "world", NULL ) != NULL );
+    ok( TOML_isType( TOML_find( table, "world", NULL ), TOML_BOOLEAN ) );
+    ok( TOML_find( table, "moon", NULL ) != NULL );
+    ok( TOML_isType( TOML_find( table, "moon", NULL ), TOML_BOOLEAN ) );
     TOML_free( table );
   }
 
@@ -164,7 +176,7 @@ int main() {
     TOML_free( table );
   }
 
-  note( "** errors **" );
+  note( "\n** errors **" );
 
   { /** parse_incomplete_string **/
     note( "parse_incomplete_string" );
@@ -210,7 +222,7 @@ int main() {
     TOML_free( error );
   }
 
-  note( "** stringify **" );
+  note( "\n** stringify **" );
 
   { /** stringify_string **/
     note( "stringify_string" );
@@ -219,6 +231,17 @@ int main() {
     char *buffer;
     TOML_stringify( &buffer, TOMLTable_getKey( table, "word" ), NULL );
     is( buffer, "some words" );
+    free( buffer );
+    TOML_free( table );
+  }
+
+  { /** stringify_boolean **/
+    note( "stringify_boolean" );
+    TOMLTable *table = NULL;
+    TOML_parse( "world = true\nmoon = false", &table, NULL );
+    char *buffer;
+    TOML_stringify( &buffer, table, NULL );
+    is( buffer, "world = true\nmoon = false\n" );
     free( buffer );
     TOML_free( table );
   }

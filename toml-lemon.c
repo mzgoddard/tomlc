@@ -132,16 +132,18 @@ void TOML_freeToken( TOMLToken *token ) {
 **                       defined, then do no error processing.
 */
 #define YYCODETYPE unsigned char
-#define YYNOCODE 31
+#define YYNOCODE 32
 #define YYACTIONTYPE unsigned char
 #define TOMLParserTOKENTYPE void*
 typedef union {
   int yyinit;
   TOMLParserTOKENTYPE yy0;
-  TOMLArray * yy2;
-  table_id_node * yy44;
-  TOMLNumber * yy45;
-  int yy61;
+  TOMLBasic * yy15;
+  TOMLBoolean * yy16;
+  TOMLNumber * yy26;
+  table_id_node * yy34;
+  TOMLArray * yy60;
+  int yy63;
 } YYMINORTYPE;
 #ifndef YYSTACKDEPTH
 #define YYSTACKDEPTH 100
@@ -150,10 +152,10 @@ typedef union {
 #define TOMLParserARG_PDECL , TOMLParserState *state 
 #define TOMLParserARG_FETCH  TOMLParserState *state  = yypParser->state 
 #define TOMLParserARG_STORE yypParser->state  = state 
-#define YYNSTATE 49
-#define YYNRULE 38
-#define YYERRORSYMBOL 11
-#define YYERRSYMDT yy61
+#define YYNSTATE 44
+#define YYNRULE 33
+#define YYERRORSYMBOL 13
+#define YYERRSYMDT yy63
 #define YY_NO_ACTION      (YYNSTATE+YYNRULE+2)
 #define YY_ACCEPT_ACTION  (YYNSTATE+YYNRULE+1)
 #define YY_ERROR_ACTION   (YYNSTATE+YYNRULE)
@@ -223,43 +225,43 @@ static const YYMINORTYPE yyzerominor = { 0 };
 **  yy_default[]       Default action for each state.
 */
 static const YYACTIONTYPE yy_action[] = {
- /*     0 */    88,    2,   30,   32,   34,   35,   39,   47,    6,   25,
- /*    10 */    26,   27,   19,   10,   13,    9,   31,   32,   34,   35,
- /*    20 */    28,   12,    6,   33,    4,   29,    3,   42,   39,   36,
- /*    30 */    43,   44,   45,   46,   17,   18,   40,   12,   12,    1,
- /*    40 */     5,   16,   33,    4,   39,   22,   24,   39,   49,    1,
- /*    50 */    21,   37,    8,   15,   40,   22,   24,   23,   38,   24,
- /*    60 */    20,    7,    1,   48,   11,   12,   41,   22,   14,   89,
- /*    70 */     8,
+ /*     0 */    26,   43,   16,   17,   18,   15,    8,   78,    4,   29,
+ /*    10 */    31,   33,   34,    9,    9,    7,    1,   27,    2,   11,
+ /*    20 */    39,   40,   21,   22,   23,   24,   44,   42,   43,   16,
+ /*    30 */    17,   18,   20,   43,   16,   17,   18,   36,   10,   30,
+ /*    40 */    31,   33,   34,    1,   10,    7,    3,    9,   19,   21,
+ /*    50 */    22,   23,   24,   13,   32,    5,   41,   32,    5,   38,
+ /*    60 */    28,   25,   38,   12,   14,   39,    9,   37,    6,   38,
+ /*    70 */    35,   79,   38,
 };
 static const YYCODETYPE yy_lookahead[] = {
- /*     0 */    12,   13,   14,   15,   16,   17,    7,    4,   20,   22,
- /*    10 */    23,   24,   25,   26,   27,   28,   14,   15,   16,   17,
- /*    20 */    11,    1,   20,    2,    3,   11,    6,   11,    7,    4,
- /*    30 */    21,   22,   23,   24,   18,   19,   20,    1,    1,    3,
- /*    40 */     3,    1,    2,    3,    7,    9,   10,    7,    0,    3,
- /*    50 */    23,    4,    5,   19,   20,    9,   10,   24,   20,   10,
- /*    60 */     8,   29,    3,   22,   29,    1,   11,    9,   29,   30,
- /*    70 */     5,
+ /*     0 */    23,   24,   25,   26,   27,   28,   29,   14,   15,   16,
+ /*    10 */    17,   18,   19,    1,    1,   22,    3,   13,    6,   21,
+ /*    20 */    22,   13,    9,   10,   11,   12,    0,   23,   24,   25,
+ /*    30 */    26,   27,   23,   24,   25,   26,   27,    4,    5,   16,
+ /*    40 */    17,   18,   19,    3,    5,   22,   30,    1,    4,    9,
+ /*    50 */    10,   11,   12,    1,    2,    3,   13,    2,    3,    7,
+ /*    60 */    13,    8,    7,   20,   21,   22,    1,   22,    3,    7,
+ /*    70 */     4,   31,    7,
 };
-#define YY_SHIFT_USE_DFLT (-2)
-#define YY_SHIFT_MAX 19
+#define YY_SHIFT_USE_DFLT (-1)
+#define YY_SHIFT_MAX 15
 static const signed char yy_shift_ofst[] = {
- /*     0 */    21,   46,   40,   36,   37,   -1,   20,   49,   -1,   52,
- /*    10 */    52,   59,   64,   52,   58,   47,   48,   25,   65,    3,
+ /*     0 */    55,   40,   13,   40,   52,   65,   62,   12,   53,   46,
+ /*    10 */    62,   33,   66,   26,   39,   44,
 };
-#define YY_REDUCE_USE_DFLT (-14)
-#define YY_REDUCE_MAX 14
+#define YY_REDUCE_USE_DFLT (-24)
+#define YY_REDUCE_MAX 10
 static const signed char yy_reduce_ofst[] = {
- /*     0 */   -12,  -13,    2,    9,   16,   34,   14,   33,   38,   32,
- /*    10 */    35,   41,   55,   39,   27,
+ /*     0 */    -7,  -23,    4,    9,   23,   43,   -2,   47,   16,    8,
+ /*    10 */    45,
 };
 static const YYACTIONTYPE yy_default[] = {
- /*     0 */    87,   70,   87,   87,   87,   87,   87,   78,   87,   69,
- /*    10 */    67,   72,   87,   68,   75,   87,   87,   87,   58,   87,
- /*    20 */    80,   74,   81,   77,   82,   73,   76,   79,   85,   86,
- /*    30 */    50,   51,   52,   53,   54,   55,   56,   57,   59,   62,
- /*    40 */    60,   83,   84,   61,   63,   64,   65,   66,   71,
+ /*     0 */    77,   64,   77,   66,   77,   77,   77,   77,   63,   77,
+ /*    10 */    77,   77,   77,   77,   53,   77,   59,   60,   61,   62,
+ /*    20 */    65,   69,   70,   71,   72,   68,   67,   75,   76,   45,
+ /*    30 */    46,   47,   48,   49,   50,   51,   52,   54,   57,   55,
+ /*    40 */    73,   74,   56,   58,
 };
 #define YY_SZ_ACTTAB (int)(sizeof(yy_action)/sizeof(yy_action[0]))
 
@@ -355,12 +357,12 @@ void TOMLParserTrace(FILE *TraceFILE, char *zTracePrompt){
 static const char *const yyTokenName[] = { 
   "$",             "EOF",           "COMMENT",       "LEFT_SQUARE", 
   "RIGHT_SQUARE",  "ID_DOT",        "EQ",            "ID",          
-  "COMMA",         "STRING",        "NUMBER",        "error",       
-  "file",          "line",          "line_and_comment",  "line_content",
-  "table_header",  "entry",         "table_header_2",  "table_id",    
-  "id",            "value",         "array",         "string",      
-  "number",        "members",       "array_members",  "string_members",
-  "number_members",  "comma",       
+  "COMMA",         "STRING",        "NUMBER",        "TRUE",        
+  "FALSE",         "error",         "file",          "line",        
+  "line_and_comment",  "line_content",  "table_header",  "entry",       
+  "table_header_2",  "table_id",      "id",            "value",       
+  "array",         "string",        "number",        "boolean",     
+  "members",       "value_members",  "comma",       
 };
 #endif /* NDEBUG */
 
@@ -385,27 +387,22 @@ static const char *const yyRuleName[] = {
  /*  14 */ "value ::= array",
  /*  15 */ "value ::= string",
  /*  16 */ "value ::= number",
- /*  17 */ "array ::= LEFT_SQUARE members RIGHT_SQUARE",
- /*  18 */ "members ::= array_members",
- /*  19 */ "members ::= string_members",
- /*  20 */ "members ::= number_members",
- /*  21 */ "members ::=",
- /*  22 */ "array_members ::= array_members comma array",
- /*  23 */ "array_members ::= array_members comma",
- /*  24 */ "array_members ::= array",
- /*  25 */ "string_members ::= string_members comma string",
- /*  26 */ "string_members ::= string_members comma",
- /*  27 */ "string_members ::= string",
- /*  28 */ "number_members ::= number_members comma number",
- /*  29 */ "number_members ::= number_members comma",
- /*  30 */ "number_members ::= number",
- /*  31 */ "comma ::= COMMA",
- /*  32 */ "string ::= STRING",
- /*  33 */ "number ::= NUMBER",
- /*  34 */ "error ::= EOF error",
- /*  35 */ "table_header ::= LEFT_SQUARE error",
- /*  36 */ "entry ::= id EQ error",
- /*  37 */ "entry ::= id error",
+ /*  17 */ "value ::= boolean",
+ /*  18 */ "array ::= LEFT_SQUARE members RIGHT_SQUARE",
+ /*  19 */ "members ::= value_members",
+ /*  20 */ "members ::=",
+ /*  21 */ "value_members ::= value_members comma value",
+ /*  22 */ "value_members ::= value_members comma",
+ /*  23 */ "value_members ::= value",
+ /*  24 */ "comma ::= COMMA",
+ /*  25 */ "string ::= STRING",
+ /*  26 */ "number ::= NUMBER",
+ /*  27 */ "boolean ::= TRUE",
+ /*  28 */ "boolean ::= FALSE",
+ /*  29 */ "error ::= EOF error",
+ /*  30 */ "table_header ::= LEFT_SQUARE error",
+ /*  31 */ "entry ::= id EQ error",
+ /*  32 */ "entry ::= id error",
 };
 #endif /* NDEBUG */
 
@@ -495,10 +492,12 @@ static void yy_destructor(
     case 8: /* COMMA */
     case 9: /* STRING */
     case 10: /* NUMBER */
+    case 11: /* TRUE */
+    case 12: /* FALSE */
 {
 #line 1 "toml-lemon.lemon"
  TOML_freeToken((yypminor->yy0)); 
-#line 502 "toml-lemon.c"
+#line 501 "toml-lemon.c"
 }
       break;
     default:  break;   /* If no destructor action specified: do nothing */
@@ -727,44 +726,39 @@ static const struct {
   YYCODETYPE lhs;         /* Symbol on the left-hand side of the rule */
   unsigned char nrhs;     /* Number of right-hand side symbols in the rule */
 } yyRuleInfo[] = {
-  { 12, 2 },
-  { 13, 1 },
-  { 13, 2 },
-  { 14, 1 },
-  { 14, 1 },
+  { 14, 2 },
   { 15, 1 },
-  { 15, 1 },
-  { 16, 3 },
+  { 15, 2 },
+  { 16, 1 },
+  { 16, 1 },
+  { 17, 1 },
+  { 17, 1 },
   { 18, 3 },
-  { 18, 1 },
-  { 19, 3 },
-  { 19, 1 },
-  { 17, 3 },
+  { 20, 3 },
   { 20, 1 },
+  { 21, 3 },
   { 21, 1 },
-  { 21, 1 },
-  { 21, 1 },
-  { 22, 3 },
-  { 25, 1 },
-  { 25, 1 },
-  { 25, 1 },
-  { 25, 0 },
-  { 26, 3 },
-  { 26, 2 },
-  { 26, 1 },
-  { 27, 3 },
-  { 27, 2 },
-  { 27, 1 },
-  { 28, 3 },
-  { 28, 2 },
-  { 28, 1 },
-  { 29, 1 },
+  { 19, 3 },
+  { 22, 1 },
   { 23, 1 },
-  { 24, 1 },
-  { 11, 2 },
-  { 16, 2 },
-  { 17, 3 },
-  { 17, 2 },
+  { 23, 1 },
+  { 23, 1 },
+  { 23, 1 },
+  { 24, 3 },
+  { 28, 1 },
+  { 28, 0 },
+  { 29, 3 },
+  { 29, 2 },
+  { 29, 1 },
+  { 30, 1 },
+  { 25, 1 },
+  { 26, 1 },
+  { 27, 1 },
+  { 27, 1 },
+  { 13, 2 },
+  { 18, 2 },
+  { 19, 3 },
+  { 19, 2 },
 };
 
 static void yy_accept(yyParser*);  /* Forward Declaration */
@@ -824,14 +818,14 @@ static void yy_reduce(
 {
   yy_destructor(yypParser,1,&yymsp[0].minor);
 }
-#line 828 "toml-lemon.c"
+#line 822 "toml-lemon.c"
         break;
       case 4: /* line_and_comment ::= COMMENT */
 #line 89 "toml-lemon.lemon"
 {
   yy_destructor(yypParser,2,&yymsp[0].minor);
 }
-#line 835 "toml-lemon.c"
+#line 829 "toml-lemon.c"
         break;
       case 7: /* table_header ::= LEFT_SQUARE table_header_2 RIGHT_SQUARE */
 #line 93 "toml-lemon.lemon"
@@ -839,12 +833,12 @@ static void yy_reduce(
   yy_destructor(yypParser,3,&yymsp[-2].minor);
   yy_destructor(yypParser,4,&yymsp[0].minor);
 }
-#line 843 "toml-lemon.c"
+#line 837 "toml-lemon.c"
         break;
       case 8: /* table_header_2 ::= LEFT_SQUARE table_id RIGHT_SQUARE */
 #line 95 "toml-lemon.lemon"
 {
-  table_id_node *first = yymsp[-1].minor.yy44->first;
+  table_id_node *first = yymsp[-1].minor.yy34->first;
   table_id_node *node = first;
   table_id_node *next = node->next;
   TOMLTable *table = state->rootTable;
@@ -882,12 +876,12 @@ static void yy_reduce(
   yy_destructor(yypParser,3,&yymsp[-2].minor);
   yy_destructor(yypParser,4,&yymsp[0].minor);
 }
-#line 886 "toml-lemon.c"
+#line 880 "toml-lemon.c"
         break;
       case 9: /* table_header_2 ::= table_id */
 #line 132 "toml-lemon.lemon"
 {
-  table_id_node *first = yymsp[0].minor.yy44->first;
+  table_id_node *first = yymsp[0].minor.yy34->first;
   table_id_node *node = first;
   table_id_node *next = node->next;
   TOMLTable *table = state->rootTable;
@@ -915,20 +909,20 @@ static void yy_reduce(
 
   state->currentTable = table;
 }
-#line 919 "toml-lemon.c"
+#line 913 "toml-lemon.c"
         break;
       case 10: /* table_id ::= table_id ID_DOT id */
 #line 163 "toml-lemon.lemon"
 {
   table_id_node *node = malloc( sizeof(table_id_node) );
   node->name = yymsp[0].minor.yy0;
-  node->first = yymsp[-2].minor.yy44->first;
+  node->first = yymsp[-2].minor.yy34->first;
   node->next = NULL;
-  yymsp[-2].minor.yy44->next = node;
-  yygotominor.yy44 = node;
+  yymsp[-2].minor.yy34->next = node;
+  yygotominor.yy34 = node;
   yy_destructor(yypParser,5,&yymsp[-1].minor);
 }
-#line 932 "toml-lemon.c"
+#line 926 "toml-lemon.c"
         break;
       case 11: /* table_id ::= id */
 #line 171 "toml-lemon.lemon"
@@ -937,130 +931,102 @@ static void yy_reduce(
   node->name = yymsp[0].minor.yy0;
   node->first = node;
   node->next = NULL;
-  yygotominor.yy44 = node;
+  yygotominor.yy34 = node;
 }
-#line 943 "toml-lemon.c"
+#line 937 "toml-lemon.c"
         break;
       case 12: /* entry ::= id EQ value */
 #line 179 "toml-lemon.lemon"
 {
-  if ( yymsp[-2].minor.yy0 != NULL || yymsp[0].minor.yy0 != NULL ) {
+  if ( yymsp[-2].minor.yy0 != NULL || yymsp[0].minor.yy15 != NULL ) {
     TOMLRef oldValue = TOMLTable_getKey( state->currentTable, yymsp[-2].minor.yy0 );
     if ( oldValue != NULL ) {
       _TOML_fillError( state->token, state, TOML_ERROR_ENTRY_DEFINED );
     } else {
-      TOMLTable_setKey( state->currentTable, yymsp[-2].minor.yy0, yymsp[0].minor.yy0 );
+      TOMLTable_setKey( state->currentTable, yymsp[-2].minor.yy0, yymsp[0].minor.yy15 );
     }
   }
   free( yymsp[-2].minor.yy0 );
   yy_destructor(yypParser,6,&yymsp[-1].minor);
 }
-#line 959 "toml-lemon.c"
+#line 953 "toml-lemon.c"
         break;
       case 13: /* id ::= ID */
 #line 191 "toml-lemon.lemon"
 {
   yygotominor.yy0 = _TOML_newstr( yymsp[0].minor.yy0 );
 }
-#line 966 "toml-lemon.c"
+#line 960 "toml-lemon.c"
         break;
       case 14: /* value ::= array */
       case 15: /* value ::= string */ yytestcase(yyruleno==15);
-      case 18: /* members ::= array_members */ yytestcase(yyruleno==18);
-      case 19: /* members ::= string_members */ yytestcase(yyruleno==19);
-#line 195 "toml-lemon.lemon"
-{ yygotominor.yy0 = yymsp[0].minor.yy0; }
-#line 974 "toml-lemon.c"
+#line 196 "toml-lemon.lemon"
+{ yygotominor.yy15 = (TOMLBasic *) yymsp[0].minor.yy0; }
+#line 966 "toml-lemon.c"
         break;
       case 16: /* value ::= number */
-#line 197 "toml-lemon.lemon"
-{ yygotominor.yy0 = yymsp[0].minor.yy45; }
-#line 979 "toml-lemon.c"
+#line 198 "toml-lemon.lemon"
+{ yygotominor.yy15 = (TOMLBasic *) yymsp[0].minor.yy26; }
+#line 971 "toml-lemon.c"
         break;
-      case 17: /* array ::= LEFT_SQUARE members RIGHT_SQUARE */
+      case 17: /* value ::= boolean */
 #line 199 "toml-lemon.lemon"
+{ yygotominor.yy15 = (TOMLBasic *) yymsp[0].minor.yy16; }
+#line 976 "toml-lemon.c"
+        break;
+      case 18: /* array ::= LEFT_SQUARE members RIGHT_SQUARE */
+#line 201 "toml-lemon.lemon"
 {
   yygotominor.yy0 = yymsp[-1].minor.yy0;
   yy_destructor(yypParser,3,&yymsp[-2].minor);
   yy_destructor(yypParser,4,&yymsp[0].minor);
 }
-#line 988 "toml-lemon.c"
+#line 985 "toml-lemon.c"
         break;
-      case 20: /* members ::= number_members */
+      case 19: /* members ::= value_members */
 #line 204 "toml-lemon.lemon"
-{ yygotominor.yy0 = yymsp[0].minor.yy2; }
-#line 993 "toml-lemon.c"
+{ yygotominor.yy0 = yymsp[0].minor.yy60; }
+#line 990 "toml-lemon.c"
         break;
-      case 21: /* members ::= */
+      case 20: /* members ::= */
 #line 205 "toml-lemon.lemon"
 { yygotominor.yy0 = TOML_anArray( TOML_NOTYPE, NULL ); }
-#line 998 "toml-lemon.c"
+#line 995 "toml-lemon.c"
         break;
-      case 22: /* array_members ::= array_members comma array */
-      case 25: /* string_members ::= string_members comma string */ yytestcase(yyruleno==25);
-#line 207 "toml-lemon.lemon"
+      case 21: /* value_members ::= value_members comma value */
+#line 208 "toml-lemon.lemon"
 {
-  yygotominor.yy0 = yymsp[-2].minor.yy0;
-  TOMLArray_append( yygotominor.yy0, yymsp[0].minor.yy0 );
-}
-#line 1007 "toml-lemon.c"
-        break;
-      case 23: /* array_members ::= array_members comma */
-      case 26: /* string_members ::= string_members comma */ yytestcase(yyruleno==26);
-#line 211 "toml-lemon.lemon"
-{
-  yygotominor.yy0 = yymsp[-1].minor.yy0;
-}
-#line 1015 "toml-lemon.c"
-        break;
-      case 24: /* array_members ::= array */
-#line 214 "toml-lemon.lemon"
-{
-  yygotominor.yy0 = TOML_anArray( TOML_ARRAY, yymsp[0].minor.yy0, NULL );
-}
-#line 1022 "toml-lemon.c"
-        break;
-      case 27: /* string_members ::= string */
-#line 225 "toml-lemon.lemon"
-{
-  yygotominor.yy0 = TOML_anArray( TOML_STRING, yymsp[0].minor.yy0, NULL );
-}
-#line 1029 "toml-lemon.c"
-        break;
-      case 28: /* number_members ::= number_members comma number */
-#line 230 "toml-lemon.lemon"
-{
-  if ( yymsp[-2].minor.yy2->memberType != yymsp[0].minor.yy45->type ) {
+  if ( yymsp[-2].minor.yy60->memberType != yymsp[0].minor.yy15->type ) {
     _TOML_fillError( state->token, state, TOML_ERROR_ARRAY_MEMBER_MISMATCH );
   }
-  yygotominor.yy2 = yymsp[-2].minor.yy2;
-  TOMLArray_append( yygotominor.yy2, yymsp[0].minor.yy45 );
+  yygotominor.yy60 = yymsp[-2].minor.yy60;
+  TOMLArray_append( yygotominor.yy60, yymsp[0].minor.yy15 );
 }
-#line 1040 "toml-lemon.c"
+#line 1006 "toml-lemon.c"
         break;
-      case 29: /* number_members ::= number_members comma */
-#line 237 "toml-lemon.lemon"
+      case 22: /* value_members ::= value_members comma */
+#line 215 "toml-lemon.lemon"
 {
-  yygotominor.yy2 = yymsp[-1].minor.yy2;
+  yygotominor.yy60 = yymsp[-1].minor.yy60;
 }
-#line 1047 "toml-lemon.c"
+#line 1013 "toml-lemon.c"
         break;
-      case 30: /* number_members ::= number */
-#line 240 "toml-lemon.lemon"
+      case 23: /* value_members ::= value */
+#line 218 "toml-lemon.lemon"
 {
-  yygotominor.yy2 = TOML_anArray( yymsp[0].minor.yy45->type, yymsp[0].minor.yy45, NULL );
+  yygotominor.yy60 = TOML_anArray( yymsp[0].minor.yy15->type, yymsp[0].minor.yy15, NULL );
 }
-#line 1054 "toml-lemon.c"
+#line 1020 "toml-lemon.c"
         break;
-      case 31: /* comma ::= COMMA */
-#line 244 "toml-lemon.lemon"
+      case 24: /* comma ::= COMMA */
+#line 222 "toml-lemon.lemon"
 {
   yy_destructor(yypParser,8,&yymsp[0].minor);
 }
-#line 1061 "toml-lemon.c"
+#line 1027 "toml-lemon.c"
         break;
-      case 32: /* string ::= STRING */
-#line 246 "toml-lemon.lemon"
+      case 25: /* string ::= STRING */
+#line 224 "toml-lemon.lemon"
 {
   TOMLToken *token = yymsp[0].minor.yy0;
   int size = token->end - token->start;
@@ -1103,52 +1069,68 @@ static void yy_reduce(
   free( dest );
   free( tmp );
 }
-#line 1107 "toml-lemon.c"
+#line 1073 "toml-lemon.c"
         break;
-      case 33: /* number ::= NUMBER */
-#line 290 "toml-lemon.lemon"
+      case 26: /* number ::= NUMBER */
+#line 268 "toml-lemon.lemon"
 {
   char *tmp = _TOML_newstr( yymsp[0].minor.yy0 );
 
   if ( strchr( tmp, '.' ) != NULL ) {
-    yygotominor.yy45 = TOML_aDouble( atof( tmp ) );
+    yygotominor.yy26 = TOML_aDouble( atof( tmp ) );
   } else {
-    yygotominor.yy45 = TOML_anInt( atoi( tmp ) );
+    yygotominor.yy26 = TOML_anInt( atoi( tmp ) );
   }
 
   free( tmp );
 }
-#line 1122 "toml-lemon.c"
+#line 1088 "toml-lemon.c"
         break;
-      case 34: /* error ::= EOF error */
-#line 306 "toml-lemon.lemon"
-{ yygotominor.yy61 = yymsp[0].minor.yy61;   yy_destructor(yypParser,1,&yymsp[-1].minor);
+      case 27: /* boolean ::= TRUE */
+#line 281 "toml-lemon.lemon"
+{
+  yygotominor.yy16 = TOML_aBoolean( 1 );
+  yy_destructor(yypParser,11,&yymsp[0].minor);
 }
-#line 1128 "toml-lemon.c"
+#line 1096 "toml-lemon.c"
         break;
-      case 35: /* table_header ::= LEFT_SQUARE error */
-#line 308 "toml-lemon.lemon"
+      case 28: /* boolean ::= FALSE */
+#line 285 "toml-lemon.lemon"
+{
+  yygotominor.yy16 = TOML_aBoolean( 0 );
+  yy_destructor(yypParser,12,&yymsp[0].minor);
+}
+#line 1104 "toml-lemon.c"
+        break;
+      case 29: /* error ::= EOF error */
+#line 293 "toml-lemon.lemon"
+{ yygotominor.yy63 = yymsp[0].minor.yy63;   yy_destructor(yypParser,1,&yymsp[-1].minor);
+}
+#line 1110 "toml-lemon.c"
+        break;
+      case 30: /* table_header ::= LEFT_SQUARE error */
+#line 295 "toml-lemon.lemon"
 {
   _TOML_fillError( yymsp[-1].minor.yy0, state, TOML_ERROR_INVALID_HEADER );
 }
-#line 1135 "toml-lemon.c"
+#line 1117 "toml-lemon.c"
         break;
-      case 36: /* entry ::= id EQ error */
-#line 312 "toml-lemon.lemon"
+      case 31: /* entry ::= id EQ error */
+#line 299 "toml-lemon.lemon"
 {
   _TOML_fillError( state->token, state, TOML_ERROR_NO_VALUE );
   free( yymsp[-2].minor.yy0 );
   yy_destructor(yypParser,6,&yymsp[-1].minor);
 }
-#line 1144 "toml-lemon.c"
+#line 1126 "toml-lemon.c"
         break;
-      case 37: /* entry ::= id error */
-#line 317 "toml-lemon.lemon"
+      case 32: /* entry ::= id error */
+#line 304 "toml-lemon.lemon"
 {
   _TOML_fillError( state->token, state, TOML_ERROR_NO_EQ );
   free( yymsp[-1].minor.yy0 );
 }
-#line 1152 "toml-lemon.c"
+#line 1134 "toml-lemon.c"
         break;
       default:
       /* (1) line ::= line_and_comment */ yytestcase(yyruleno==1);
@@ -1203,7 +1185,7 @@ static void yy_parse_failed(
   ** parser fails */
 #line 3 "toml-lemon.lemon"
  _TOML_fillError( state->token, state, TOML_ERROR_FATAL ); 
-#line 1207 "toml-lemon.c"
+#line 1189 "toml-lemon.c"
   TOMLParserARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 #endif /* YYNOERRORRECOVERY */

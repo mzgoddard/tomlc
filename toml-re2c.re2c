@@ -42,6 +42,9 @@ yy0:
   dot { RETURNTOKEN( ID_DOT ); }
   "=" { RETURNTOKEN( EQ ); }
   "," { RETURNTOKEN( COMMA ); }
+  "true" { RETURNTOKEN( TRUE ); }
+  "false" { RETURNTOKEN( FALSE ); }
+
   comment_start noteol* { RETURNTOKEN( COMMENT ); }
   [a-zA-Z_][a-zA-Z0-9_]* { RETURNTOKEN( ID ); }
   quote (escape_quote|string_bulk)* quote {
