@@ -844,7 +844,7 @@ int _TOML_stringify(
     int size;
     if ( number->type == TOML_INT ) {
       size = snprintf( numberBuffer, 15, "%d", number->intValue );
-    } else if ( fmod( number->doubleValue, 1 ) == 0 ) {
+    } else if ( ( number->doubleValue - floor( number->doubleValue ) ) == 0 ) {
       size = snprintf( numberBuffer, 15, "%.1f", number->doubleValue );
     } else {
       size = snprintf( numberBuffer, 15, "%g", number->doubleValue );
