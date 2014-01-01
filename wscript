@@ -14,6 +14,8 @@ def configure(ctx):
     ctx.env.append_value( 'CFLAGS', '-O2' )
     ctx.env.append_value( 'CFLAGS', '-std=c99' )
 
+    ctx.env.append_value( 'LDFLAGS', '-lm' )
+
     ctx.start_msg( 'init submodules' )
     gitStatus = ctx.exec_command( 'git submodule init && git submodule update' )
     if gitStatus == 0:
