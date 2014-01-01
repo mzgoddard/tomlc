@@ -14,8 +14,6 @@ def configure(ctx):
     ctx.env.append_value( 'CFLAGS', '-O2' )
     ctx.env.append_value( 'CFLAGS', '-std=c99' )
 
-    ctx.env.append_value( 'LDFLAGS', '-lm' )
-
     ctx.start_msg( 'init submodules' )
     gitStatus = ctx.exec_command( 'git submodule init && git submodule update' )
     if gitStatus == 0:
@@ -51,28 +49,27 @@ def build(bld):
         'source': source,
         'includes': '.',
         'target': 'toml',
-        'install_path': '${PREFIX}/lib'
-        # 'lib': 'antlr3c'
+        'install_path': '${PREFIX}/lib',
+        'lib': 'm'
     }
     bld.stlib( **d )
     bld.shlib( **d )
 
-    binSource = list( source )
-    binSource.extend( bld.path.ant_glob('main.c') )
     bld.program(
-        source=binSource,
+        source='main.c',
         includes='.',
-        target='toml',
+        target='toml-lookup',
+        lib='m',
+        use='toml',
         install_path='${PREFIX}/bin'
     )
 
     bld.program(
         source=bld.path.ant_glob('test.c'),
         includes='. ../vendor/libtap',
-        target='test',
+        target='toml-test',
         libpath='../vendor/libtap',
-        ldflags='-static',
-        lib='tap',
+        lib='tap m',
         use='toml',
         install_path=None
     )
