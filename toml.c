@@ -29,25 +29,29 @@ int _TOML_stringify( struct _TOMLStringifyData *self, TOMLRef src );
 TOMLRef TOML_alloc( TOMLType type ) {
   switch ( type ) {
     case TOML_TABLE:
-      return TOML_aTable( NULL, NULL );
+      return TOML_allocTable( NULL, NULL );
     case TOML_ARRAY:
-      return TOML_anArray( TOML_NOTYPE );
+      return TOML_allocArray( TOML_NOTYPE );
     case TOML_STRING:
-      return TOML_aString( "" );
+      return TOML_allocString( "" );
     case TOML_INT:
-      return TOML_anInt( 0 );
+      return TOML_allocInt( 0 );
     case TOML_DOUBLE:
-      return TOML_aDouble( 0 );
+      return TOML_allocDouble( 0 );
+    case TOML_BOOLEAN:
+      return TOML_allocBoolean( 0 );
+    case TOML_DATE:
+      return TOML_allocEpochDate( 0 );
     default:
       return NULL;
   }
 }
 
-TOMLTable * TOML_aTable( TOMLString *key, TOMLRef value, ... ) {
+TOMLTable * TOML_allocTable( TOMLString *key, TOMLRef value, ... ) {
   TOMLTable *self = malloc( sizeof(TOMLTable) );
   self->type = TOML_TABLE;
-  self->keys = TOML_anArray( TOML_STRING, NULL );
-  self->values = TOML_anArray( TOML_NOTYPE, NULL );
+  self->keys = TOML_allocArray( TOML_STRING, NULL );
+  self->values = TOML_allocArray( TOML_NOTYPE, NULL );
 
   if ( key != NULL ) {
     TOMLArray_append( self->keys, key );
@@ -72,7 +76,7 @@ TOMLTable * TOML_aTable( TOMLString *key, TOMLRef value, ... ) {
   return self;
 }
 
-TOMLArray * TOML_anArray( TOMLType memberType, ... ) {
+TOMLArray * TOML_allocArray( TOMLType memberType, ... ) {
   TOMLArray *self = malloc( sizeof(TOMLArray) );
   self->type = TOML_ARRAY;
   self->memberType = memberType;
@@ -93,29 +97,28 @@ TOMLArray * TOML_anArray( TOMLType memberType, ... ) {
   return self;
 }
 
-TOMLString * TOML_aString( char *content ) {
-  TOMLString *self = malloc( sizeof(TOMLString) );
+TOMLString * TOML_allocString( char *content ) {
+  int size = strlen( content );
+  TOMLString *self = malloc( sizeof(TOMLString) + size + 1 );
   self->type = TOML_STRING;
-  self->size = strlen( content );
-  self->content = malloc( self->size + 1 );
+  self->size = size;
   self->content[ self->size ] = 0;
-  strncpy( self->content, content, self->size );
+  strncpy( self->content, content, size );
 
   return self;
 }
 
-TOMLString * TOML_aStringN( char *content, int n ) {
-  TOMLString *self = malloc( sizeof(TOMLString) );
+TOMLString * TOML_allocStringN( char *content, int n ) {
+  TOMLString *self = malloc( sizeof(TOMLString) + n + 1 );
   self->type = TOML_STRING;
   self->size = n;
-  self->content = malloc( n + 1 );
   self->content[ n ] = 0;
   strncpy( self->content, content, n );
 
   return self;
 }
 
-TOMLNumber * TOML_anInt( int value ) {
+TOMLNumber * TOML_allocInt( int value ) {
   TOMLNumber *self = malloc( sizeof(TOMLNumber) );
   self->type = TOML_INT;
   // self->numberType = TOML_INT;
@@ -124,7 +127,7 @@ TOMLNumber * TOML_anInt( int value ) {
   return self;
 }
 
-TOMLNumber * TOML_aDouble( double value ) {
+TOMLNumber * TOML_allocDouble( double value ) {
   TOMLNumber *self = malloc( sizeof(TOMLNumber) );
   self->type = TOML_DOUBLE;
   // self->numberType = TOML_DOUBLE;
@@ -133,7 +136,7 @@ TOMLNumber * TOML_aDouble( double value ) {
   return self;
 }
 
-TOMLBoolean * TOML_aBoolean( int truth ) {
+TOMLBoolean * TOML_allocBoolean( int truth ) {
   TOMLBoolean *self = malloc( sizeof(TOMLBoolean) );
   self->type = TOML_BOOLEAN;
   self->isTrue = truth;
@@ -152,7 +155,7 @@ int _TOML_isLeapYear( int year ) {
   }
 }
 
-TOMLDate * TOML_aDate(
+TOMLDate * TOML_allocDate(
   int year, int month, int day, int hour, int minute, int second
 ) {
   TOMLDate *self = malloc( sizeof(TOMLDate) );
@@ -189,7 +192,7 @@ TOMLDate * TOML_aDate(
   return self;
 }
 
-TOMLDate * TOML_anEpochDate( long int stamp ) {
+TOMLDate * TOML_allocEpochDate( time_t stamp ) {
   TOMLDate *self = malloc( sizeof(TOMLDate) );
   self->type = TOML_DATE;
   self->sinceEpoch = stamp;
@@ -206,7 +209,7 @@ TOMLDate * TOML_anEpochDate( long int stamp ) {
   return self;
 }
 
-TOMLError * TOML_anError( int code ) {
+TOMLError * TOML_allocError( int code ) {
   TOMLError *self = malloc( sizeof(TOMLError) );
   self->type = TOML_ERROR;
   self->code = code;
@@ -256,10 +259,9 @@ TOMLRef TOML_copy( TOMLRef self ) {
     return newArray;
   } else if ( basic->type == TOML_STRING ) {
     TOMLString *string = (TOMLString *) self;
-    TOMLString *newString = malloc( sizeof(TOMLString) );
+    TOMLString *newString = malloc( sizeof(TOMLString) + string->size + 1 );
     newString->type = TOML_STRING;
     newString->size = string->size;
-    newString->content = malloc( string->size + 1 );
     strncpy( newString->content, string->content, string->size + 1 );
     return newString;
   } else if ( basic->type == TOML_INT || basic->type == TOML_DOUBLE ) {
@@ -309,9 +311,6 @@ void TOML_free( TOMLRef self ) {
       TOML_free( array->members[ i ] );
     }
     free( array->members );
-  } else if ( basic->type == TOML_STRING ) {
-    TOMLString *string = (TOMLString *) self;
-    free( string->content );
   } else if ( basic->type == TOML_ERROR ) {
     TOMLError *error = (TOMLError *) self;
     free( error->line );
@@ -361,20 +360,6 @@ TOMLRef TOML_find( TOMLRef self, ... ) {
   return self;
 }
 
-TOMLRef TOMLTable_find( TOMLTable *self, char *key, ... ) {
-  va_list args;
-  va_start( args, key );
-
-  while ( key != NULL && self ) {
-    self = TOMLTable_getKey( self, key );
-    key = va_arg( args, char * );
-  }
-
-  va_end( args );
-
-  return self;
-}
-
 TOMLRef TOMLTable_getKey( TOMLTable *self, char *key ) {
   int keyLength = strlen( key );
   int i;
@@ -400,7 +385,7 @@ void TOMLTable_setKey( TOMLTable *self, char *key, TOMLRef value ) {
     }
   }
 
-  TOMLArray_append( self->keys, TOML_aString( key ) );
+  TOMLArray_append( self->keys, TOML_allocString( key ) );
   TOMLArray_append( self->values, value );
 }
 
@@ -432,6 +417,12 @@ void TOMLArray_append( TOMLArray *self, TOMLRef value ) {
   free( oldMembers );
 }
 
+char * TOML_toString( TOMLString *self ) {
+  char *string = malloc( self->size + 1 );
+  TOML_copyString( self, self->size + 1, string );
+  return string;
+}
+
 #define RETURN_VALUE switch ( self->type ) { \
     case TOML_INT: \
       return self->intValue; \
@@ -451,6 +442,14 @@ double TOML_toDouble( TOMLNumber *self ) {
 
 #undef RETURN_VALUE
 
+struct tm TOML_toTm( TOMLDate *self ) {
+  return *gmtime( &self->sinceEpoch );
+}
+
+int TOML_toBoolean( TOMLBoolean *self ) {
+  return self->isTrue;
+}
+
 TOMLToken * TOML_newToken( TOMLToken *token ) {
   TOMLToken *heapToken = malloc( sizeof(TOMLToken) );
   memcpy( heapToken, token, sizeof(TOMLToken) );
@@ -463,7 +462,7 @@ TOMLToken * TOML_newToken( TOMLToken *token ) {
   return heapToken;
 }
 
-void TOML_copyString( TOMLString *self, int size, char *buffer ) {
+void TOML_strcpy( char *buffer, TOMLString *self, int size ) {
   if ( self->type != TOML_STRING ) {
     buffer[0] = 0;
   } else {
@@ -530,7 +529,7 @@ int TOML_load( char *filename, TOMLTable **dest, TOMLError *error ) {
   TOMLToken token = { 0, NULL, NULL, buffer, 0, buffer, NULL };
   TOMLToken lastToken = token;
 
-  TOMLTable *topTable = *dest = TOML_aTable( NULL, NULL );
+  TOMLTable *topTable = *dest = TOML_allocTable( NULL, NULL );
   TOMLParserState state = { topTable, topTable, 0, error, &token };
 
   pTOMLParser parser = TOMLParserAlloc( malloc );
@@ -605,7 +604,7 @@ int TOML_parse( char *buffer, TOMLTable **dest, TOMLError *error ) {
   int hTokenId;
   TOMLToken token = { 0, NULL, NULL, buffer, 0, buffer, NULL };
 
-  TOMLTable *topTable = *dest = TOML_aTable( NULL, NULL );
+  TOMLTable *topTable = *dest = TOML_allocTable( NULL, NULL );
   TOMLParserState state = { topTable, topTable, 0, error, &token };
 
   pTOMLParser parser = TOMLParserAlloc( malloc );

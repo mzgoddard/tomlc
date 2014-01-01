@@ -862,9 +862,9 @@ static void yy_reduce(
     if ( !tmpTable ) {
       TOMLRef nextValue;
       if ( node->next ) {
-        nextValue = TOML_aTable( NULL, NULL );
+        nextValue = TOML_allocTable( NULL, NULL );
       } else {
-        nextValue = TOML_anArray( TOML_TABLE, NULL );
+        nextValue = TOML_allocArray( TOML_TABLE, NULL );
       }
       TOMLTable_setKey( table, node->name, nextValue );
       tmpTable = nextValue;
@@ -876,7 +876,7 @@ static void yy_reduce(
   }
 
   TOMLArray *array = (TOMLArray *) table;
-  table = TOML_aTable( NULL, NULL );
+  table = TOML_allocTable( NULL, NULL );
   TOMLArray_append( array, table );
 
   state->currentTable = table;
@@ -905,7 +905,7 @@ static void yy_reduce(
     if ( tmpTable && node->next == NULL ) {
       _TOML_fillError( state->token, state, TOML_ERROR_TABLE_DEFINED );
     } else if ( !tmpTable ) {
-      tmpTable = TOML_aTable( NULL, NULL );
+      tmpTable = TOML_allocTable( NULL, NULL );
       TOMLTable_setKey( table, node->name, tmpTable );
     }
     table = tmpTable;
@@ -1002,7 +1002,7 @@ static void yy_reduce(
         break;
       case 21: /* members ::= */
 #line 206 "toml-lemon.lemon"
-{ yygotominor.yy0 = TOML_anArray( TOML_NOTYPE, NULL ); }
+{ yygotominor.yy0 = TOML_allocArray( TOML_NOTYPE, NULL ); }
 #line 1007 "toml-lemon.c"
         break;
       case 22: /* value_members ::= value_members comma value */
@@ -1026,7 +1026,7 @@ static void yy_reduce(
       case 24: /* value_members ::= value */
 #line 219 "toml-lemon.lemon"
 {
-  yygotominor.yy50 = TOML_anArray( yymsp[0].minor.yy13->type, yymsp[0].minor.yy13, NULL );
+  yygotominor.yy50 = TOML_allocArray( yymsp[0].minor.yy13->type, yymsp[0].minor.yy13, NULL );
 }
 #line 1032 "toml-lemon.c"
         break;
@@ -1076,7 +1076,7 @@ static void yy_reduce(
     }
   }
 
-  yygotominor.yy0 = TOML_aStringN( dest + 1, size - 2 );
+  yygotominor.yy0 = TOML_allocStringN( dest + 1, size - 2 );
 
   free( dest );
   free( tmp );
@@ -1089,9 +1089,9 @@ static void yy_reduce(
   char *tmp = _TOML_newstr( yymsp[0].minor.yy0 );
 
   if ( strchr( tmp, '.' ) != NULL ) {
-    yygotominor.yy8 = TOML_aDouble( atof( tmp ) );
+    yygotominor.yy8 = TOML_allocDouble( atof( tmp ) );
   } else {
-    yygotominor.yy8 = TOML_anInt( atoi( tmp ) );
+    yygotominor.yy8 = TOML_allocInt( atoi( tmp ) );
   }
 
   free( tmp );
@@ -1101,7 +1101,7 @@ static void yy_reduce(
       case 28: /* boolean ::= TRUE */
 #line 282 "toml-lemon.lemon"
 {
-  yygotominor.yy3 = TOML_aBoolean( 1 );
+  yygotominor.yy3 = TOML_allocBoolean( 1 );
   yy_destructor(yypParser,11,&yymsp[0].minor);
 }
 #line 1108 "toml-lemon.c"
@@ -1109,7 +1109,7 @@ static void yy_reduce(
       case 29: /* boolean ::= FALSE */
 #line 286 "toml-lemon.lemon"
 {
-  yygotominor.yy3 = TOML_aBoolean( 0 );
+  yygotominor.yy3 = TOML_allocBoolean( 0 );
   yy_destructor(yypParser,12,&yymsp[0].minor);
 }
 #line 1116 "toml-lemon.c"
@@ -1128,7 +1128,7 @@ static void yy_reduce(
     "%d-%d-%dT%d:%d:%dZ",
     &year, &month, &day, &hour, &minute, &second
   );
-  yygotominor.yy4 = TOML_aDate( year, month, day, hour, minute, second );
+  yygotominor.yy4 = TOML_allocDate( year, month, day, hour, minute, second );
 }
 #line 1134 "toml-lemon.c"
         break;

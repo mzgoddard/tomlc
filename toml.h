@@ -2,6 +2,7 @@
 #define TOML_H_N6JCXECL
 
 #include <stdlib.h>
+#include <time.h>
 
 // Values identifying what the TOML object is.
 typedef enum {
@@ -86,7 +87,7 @@ typedef struct TOMLTable {
 typedef struct TOMLString {
   TOMLType type;
   int size;
-  char *content;
+  char content[];
 } TOMLString;
 
 // A TOML number.
@@ -130,29 +131,51 @@ typedef struct TOMLError {
  ** Memory Functions **
  **********************/
 
+// Allocate an empty TOML object of a given type.
 TOMLRef TOML_alloc( TOMLType );
 
 // Allocates a table and assigns key, value pairs. Table takes ownership of any
 // keys and values given and they will be freed if overwritten with setKey or
 // freed by TOML_free.
-TOMLTable * TOML_aTable( TOMLString *key, TOMLRef value, ... );
+TOMLTable * TOML_allocTable( TOMLString *key, TOMLRef value, ... );
 
 // Allocates an array and appends any values given. Array takes ownership of
 // any keys and values given and they will be freed if overwritten with
 // setIndex or freed by TOML_free.
-TOMLArray * TOML_anArray( TOMLType memberType, ... );
+TOMLArray * TOML_allocArray( TOMLType memberType, ... );
 
-// TOML_aString creates a copy of the given string.
-TOMLString * TOML_aString( char *content );
-TOMLString * TOML_aStringN( char *content, int n );
-TOMLNumber * TOML_anInt( int value );
-TOMLNumber * TOML_aDouble( double value );
-TOMLBoolean * TOML_aBoolean( int truth );
-TOMLDate * TOML_aDate( int, int, int, int, int, int );
-TOMLDate * TOML_anEpochDate( long int stamp );
-TOMLError * TOML_anError( int code );
+// TOML_allocString creates a copy of the given string.
+TOMLString * TOML_allocString( char *content );
 
+// TOML_allocStringN creates a copy of the given string up to n.
+TOMLString * TOML_allocStringN( char *content, int n );
+
+// Allocate a TOMLNumber and store an int value.
+TOMLNumber * TOML_allocInt( int value );
+
+// Allocate a TOMLNumber and store a double value.
+TOMLNumber * TOML_allocDouble( double value );
+
+// Allocate a TOMLBoolean and store the truth.
+TOMLBoolean * TOML_allocBoolean( int truth );
+
+// Allocate a TOMLDate with the given values.
+//
+// These values work with c standard tm values. Month is bound 0 to 11.
+TOMLDate * TOML_allocDate(
+  int year, int month, int day, int hour, int minute, int second
+);
+
+// Allocate a TOMLDate with a given GMT timestamp in seconds.
+TOMLDate * TOML_allocEpochDate( time_t stamp );
+
+// Allocate an error to be filled by TOML_parse or TOML_stringify.
+TOMLError * TOML_allocError( int code );
+
+// Copy any TOML object.
 TOMLRef TOML_copy( TOMLRef );
+
+// Free a TOML object.
 void TOML_free( TOMLRef );
 
 /*****************
@@ -162,23 +185,59 @@ void TOML_free( TOMLRef );
 int TOML_isType( TOMLRef, TOMLType );
 int TOML_isNumber( TOMLRef );
 
+// Dive through the hierarchy. For each level getKey and getIndex are called to
+// get the next level. If it is a table getKey. If it is an array getIndex.
+// Each lookup is a string, before getIndex is called, the string will be
+// translated into an integer. TOML_find works this way to provide a convenient
+// and clear API.
+//
+// Example:
+// TOMLRef ref = TOML_find( table, "child", "nextchild", "0", NULL );
 TOMLRef TOML_find( TOMLRef, ... );
 
-TOMLRef TOMLTable_find( TOMLTable *, char *, ... );
+// Get the value at the given key.
 TOMLRef TOMLTable_getKey( TOMLTable *, char * );
+
+// Set the value at the given key. If the key is already set, the replaced
+// value will be freed.
 void TOMLTable_setKey( TOMLTable *, char *, TOMLRef );
 
+// Return the value stored at the index or NULL.
 TOMLRef TOMLArray_getIndex( TOMLArray *, int index );
 
 // Set index of array to the given value. If the index is greater than or equal
 // to the current size of the array, the value will be appended to the end.
+//
+// If a value is replaced, the replaced value will be freed.
 void TOMLArray_setIndex( TOMLArray *, int index, TOMLRef );
 
+// Append the given TOML object to the array.
 void TOMLArray_append( TOMLArray *, TOMLRef );
 
+/****************
+ ** Raw Values **
+ ****************/
+
+// Allocates a copy of the string held in TOMLString.
+char * TOML_toString( TOMLString * );
+
+// Copy the content of TOMLString to a destination.
+void TOML_strcpy( char *dest, TOMLString *src, int size );
+
+// Copy a string.
+#define TOML_copyString( self, size, string ) TOML_strcpy( string, self, size )
+
+// Return the TOMLNumber value as integer.
 int TOML_toInt( TOMLNumber * );
+
+// Return the TOMLNumber value as double.
 double TOML_toDouble( TOMLNumber * );
-void TOML_copyString( TOMLString *, int, char * );
+
+// Return the c standard tm struct filled with data from this date.
+struct tm TOML_toTm( TOMLDate * );
+
+// Return the truth of a TOMLBoolean.
+int TOML_toBoolean( TOMLBoolean * );
 
 /************************
  ** Loading and Saving **

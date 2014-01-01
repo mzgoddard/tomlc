@@ -10,14 +10,14 @@ int main() {
 
   { /** alloc_number **/
     note( "alloc_number" );
-    TOMLNumber *number = TOML_anInt( 1 );
+    TOMLNumber *number = TOML_allocInt( 1 );
     ok( TOML_toInt( number ) == 1, "number is 1" );
     TOML_free( number );
   }
 
   { /** alloc_string **/
     note( "alloc_string" );
-    TOMLString *string = TOML_aString( "Why, yes." );
+    TOMLString *string = TOML_allocString( "Why, yes." );
     char string_buffer[256];
     TOML_copyString( string, 256, string_buffer );
     is( string_buffer, "Why, yes.", "string is correct" );
@@ -26,11 +26,11 @@ int main() {
 
   { /** alloc_date **/
     note( "alloc_date" );
-    TOMLDate *date = TOML_aDate( 2013, 11, 20, 14, 30, 0 );
+    TOMLDate *date = TOML_allocDate( 2013, 11, 20, 14, 30, 0 );
     ok( date->sinceEpoch == 1387549800 );
     TOML_free( date );
 
-    date = TOML_anEpochDate( 1387549800 );
+    date = TOML_allocEpochDate( 1387549800 );
     ok( date->year == 2013 );
     ok( date->month == 11 );
     ok( date->day == 20 );
@@ -42,9 +42,9 @@ int main() {
 
   { /** alloc_array **/
     note( "alloc_array" );
-    TOMLArray *array = TOML_anArray( TOML_INT,
-      TOML_anInt( 2 ),
-      TOML_anInt( 3 ),
+    TOMLArray *array = TOML_allocArray( TOML_INT,
+      TOML_allocInt( 2 ),
+      TOML_allocInt( 3 ),
       NULL
     );
     ok( TOML_toInt( TOMLArray_getIndex( array, 0 ) ) == 2, "array[0] is 2" );
@@ -54,8 +54,8 @@ int main() {
 
   { /** alloc_table **/
     note( "alloc_table" );
-    TOMLTable *table = TOML_aTable(
-      TOML_aString( "key" ), TOML_aString( "value" ),
+    TOMLTable *table = TOML_allocTable(
+      TOML_allocString( "key" ), TOML_allocString( "value" ),
       NULL, NULL
     );
     TOMLString *table_value = TOMLTable_getKey( table, "key" );
@@ -206,7 +206,7 @@ int main() {
   { /** parse_incomplete_string **/
     note( "parse_incomplete_string" );
     TOMLTable *table = NULL;
-    TOMLError *error = TOML_anError( TOML_SUCCESS );
+    TOMLError *error = TOML_allocError( TOML_SUCCESS );
     ok( TOML_parse(
       "world = \"planet\"\nmoon = \nothermoon = \"daedulus",
       &table,
@@ -220,7 +220,7 @@ int main() {
   { /** parse_incomplete_table_header **/
     note( "parse_incomplete_table_header" );
     TOMLTable *table = NULL;
-    TOMLError *error = TOML_anError( TOML_SUCCESS );
+    TOMLError *error = TOML_allocError( TOML_SUCCESS );
     ok( TOML_parse( "[world]]\nhello = \"world\"", &table, error ) != 0 );
     ok( table == NULL );
     ok( error->code != 0 );
@@ -230,7 +230,7 @@ int main() {
   { /** parse_repeated_table_header **/
     note( "parse_repeated_table_header" );
     TOMLTable *table = NULL;
-    TOMLError *error = TOML_anError( TOML_SUCCESS );
+    TOMLError *error = TOML_allocError( TOML_SUCCESS );
     ok( TOML_parse( "[world]\n[world]", &table, error ) != 0 );
     ok( table == NULL );
     ok( error->code != 0 );
@@ -240,7 +240,7 @@ int main() {
   { /** parse_repeated_entry **/
     note( "parse_repeated_entry" );
     TOMLTable *table = NULL;
-    TOMLError *error = TOML_anError( TOML_SUCCESS );
+    TOMLError *error = TOML_allocError( TOML_SUCCESS );
     ok( TOML_parse( "planet = 1\nplanet = 2", &table, error ) != 0 );
     ok( table == NULL );
     ok( error->code != 0 );

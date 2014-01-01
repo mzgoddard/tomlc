@@ -129,7 +129,7 @@ int main( int argc, char **argv ) {
   }
 
   TOMLTable *table = NULL;
-  TOMLError *error = TOML_anError( TOML_SUCCESS );
+  TOMLError *error = TOML_allocError( TOML_SUCCESS );
 
   // Load and exit if there is an error.
   if ( TOML_load( filepath, &table, error ) != TOML_SUCCESS ) {
@@ -140,7 +140,7 @@ int main( int argc, char **argv ) {
   TOML_free( error );
 
   if ( check ) {
-    printf( "Ok TOML.\n" );
+    printf( "ok\n" );
     return 0;
   }
 
@@ -182,7 +182,7 @@ int main( int argc, char **argv ) {
     }
   }
 
-  error = TOML_anError( TOML_SUCCESS );
+  error = TOML_allocError( TOML_SUCCESS );
 
   char *output;
   if ( TOML_stringify( &output, ref, error ) != TOML_SUCCESS ) {

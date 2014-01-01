@@ -110,9 +110,9 @@ table_header_2 ::= LEFT_SQUARE table_id(TABLE_ID) RIGHT_SQUARE . {
     if ( !tmpTable ) {
       TOMLRef nextValue;
       if ( node->next ) {
-        nextValue = TOML_aTable( NULL, NULL );
+        nextValue = TOML_allocTable( NULL, NULL );
       } else {
-        nextValue = TOML_anArray( TOML_TABLE, NULL );
+        nextValue = TOML_allocArray( TOML_TABLE, NULL );
       }
       TOMLTable_setKey( table, node->name, nextValue );
       tmpTable = nextValue;
@@ -124,7 +124,7 @@ table_header_2 ::= LEFT_SQUARE table_id(TABLE_ID) RIGHT_SQUARE . {
   }
 
   TOMLArray *array = (TOMLArray *) table;
-  table = TOML_aTable( NULL, NULL );
+  table = TOML_allocTable( NULL, NULL );
   TOMLArray_append( array, table );
 
   state->currentTable = table;
@@ -147,7 +147,7 @@ table_header_2 ::= table_id(TABLE_ID) . {
     if ( tmpTable && node->next == NULL ) {
       _TOML_fillError( state->token, state, TOML_ERROR_TABLE_DEFINED );
     } else if ( !tmpTable ) {
-      tmpTable = TOML_aTable( NULL, NULL );
+      tmpTable = TOML_allocTable( NULL, NULL );
       TOMLTable_setKey( table, node->name, tmpTable );
     }
     table = tmpTable;
@@ -203,7 +203,7 @@ array(ARY) ::= LEFT_SQUARE members(OLD_ARY) RIGHT_SQUARE . {
   ARY = OLD_ARY;
 }
 members(ARY) ::= value_members(OLD_ARY) . { ARY = OLD_ARY; }
-members(ARY) ::= . { ARY = TOML_anArray( TOML_NOTYPE, NULL ); }
+members(ARY) ::= . { ARY = TOML_allocArray( TOML_NOTYPE, NULL ); }
 
 %type value_members { TOMLArray * }
 value_members(NEW_ARY) ::= value_members(OLD_ARY) comma value(VALUE) . {
@@ -217,7 +217,7 @@ value_members(NEW_ARY) ::= value_members(OLD_ARY) comma . {
   NEW_ARY = OLD_ARY;
 }
 value_members(ARY) ::= value(VALUE) . {
-  ARY = TOML_anArray( VALUE->type, VALUE, NULL );
+  ARY = TOML_allocArray( VALUE->type, VALUE, NULL );
 }
 
 comma ::= COMMA .
@@ -259,7 +259,7 @@ string(STR) ::= STRING(STR_TOKEN) . {
     }
   }
 
-  STR = TOML_aStringN( dest + 1, size - 2 );
+  STR = TOML_allocStringN( dest + 1, size - 2 );
 
   free( dest );
   free( tmp );
@@ -270,9 +270,9 @@ number(NUMBER) ::= NUMBER(NUMBER_TOKEN) . {
   char *tmp = _TOML_newstr( NUMBER_TOKEN );
 
   if ( strchr( tmp, '.' ) != NULL ) {
-    NUMBER = TOML_aDouble( atof( tmp ) );
+    NUMBER = TOML_allocDouble( atof( tmp ) );
   } else {
-    NUMBER = TOML_anInt( atoi( tmp ) );
+    NUMBER = TOML_allocInt( atoi( tmp ) );
   }
 
   free( tmp );
@@ -280,11 +280,11 @@ number(NUMBER) ::= NUMBER(NUMBER_TOKEN) . {
 
 %type boolean { TOMLBoolean * }
 boolean(BOOLEAN) ::= TRUE . {
-  BOOLEAN = TOML_aBoolean( 1 );
+  BOOLEAN = TOML_allocBoolean( 1 );
 }
 
 boolean(BOOLEAN) ::= FALSE . {
-  BOOLEAN = TOML_aBoolean( 0 );
+  BOOLEAN = TOML_allocBoolean( 0 );
 }
 
 %type date { TOMLDate * }
@@ -300,7 +300,7 @@ date(DATE) ::= DATE(DATE_TOKEN) . {
     "%d-%d-%dT%d:%d:%dZ",
     &year, &month, &day, &hour, &minute, &second
   );
-  DATE = TOML_aDate( year, month, day, hour, minute, second );
+  DATE = TOML_allocDate( year, month, day, hour, minute, second );
 }
 
 /**
