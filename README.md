@@ -2,6 +2,10 @@
 
 [![Build Status](https://drone.io/github.com/mzgoddard/tomlc/status.png)](https://drone.io/github.com/mzgoddard/tomlc/latest)
 
+### License
+
+MIT
+
 ### Dependencies
 
 `libtoml` uses Lemon and re2c to generate its parser and lexer respectively.
