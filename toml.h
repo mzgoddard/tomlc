@@ -1,6 +1,10 @@
 #ifndef TOML_H_N6JCXECL
 #define TOML_H_N6JCXECL
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <time.h>
 
@@ -259,5 +263,9 @@ int TOML_parse( char *buffer, TOMLTable **, TOMLError * );
 // Allocates a string filled a string version of the table.
 // Returns non-zero if there was an error.
 int TOML_stringify( char **buffer, TOMLRef, TOMLError * );
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif /* end of include guard: TOML_H_N6JCXECL */
