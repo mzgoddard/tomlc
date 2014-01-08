@@ -30,12 +30,15 @@ yy0:
   eol = [\n];
   eof = [\x00];
   quote = ["];
-  escape_quote = "\\\"";
-  string_bulk = [^"\x00];
+  escaped_chars = "\\" [btfnr/\\"];
+  string_bulk = [^"\x00\\];
   digit = [0-9];
+  hex = [0-9a-fA-F];
   digit2 = digit digit;
   negate = [\-];
   dot = "\.";
+  unicode = "\\u" hex{4};
+  invalid_unicode = "\\u" hex{0,3};
 
   eof { RETURNTOKEN( EOF ); }
   "[" { RETURNTOKEN( LEFT_SQUARE ); }
@@ -48,7 +51,7 @@ yy0:
 
   comment_start noteol* { RETURNTOKEN( COMMENT ); }
   [a-zA-Z_][a-zA-Z0-9_]* { RETURNTOKEN( ID ); }
-  quote (escape_quote|string_bulk)* quote {
+  quote (escaped_chars|unicode|string_bulk)* quote {
     COUNTLINES;
     RETURNTOKEN( STRING );
   }
@@ -59,7 +62,7 @@ yy0:
   [ \t\r]+ { SKIP(); }
   [\n] { tokenData->line++; tokenData->lineStart = p; SKIP(); }
 
-  quote (escape_quote|string_bulk)* eof {
+  quote (escaped_chars|unicode|string_bulk)* (invalid_unicode|eof) {
     COUNTLINES;
     RETURNTOKEN( EOF );
   }

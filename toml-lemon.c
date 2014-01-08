@@ -1052,23 +1052,60 @@ static void yy_reduce(
   char *tmpCursor = tmp;
   char *destCursor = dest;
 
-  // replace \\\" with "
-  // replace \\n with \n
-  // replace \\t with \t
+  // replace \\b with \b (U+0008)
+  // replace \\t with \t (U+0009)
+  // replace \\n with \n (U+000A)
+  // replace \\f with \f (U+000C)
+  // replace \\r with \r (U+000D)
+  // replace \\\" with " (U+0022)
+  // replace \/ with / (U+002F)
+  // replace \\ with \ (U+005C)
+  // replace \\uxxxx with encoded character
   while ( tmpCursor != NULL ) {
     char *next = strchr( tmpCursor, '\\' );
     if ( next && next[1] ) {
       char *nextDest = destCursor + ( (int) next - (int) tmpCursor );
-      if ( next[1] == '"' ) { // '"'
-        strcpy( nextDest, next + 1 );
-      } else if ( next[1] == 'n' ) {
-        *nextDest = '\n';
-        strcpy( nextDest + 1, next + 2 );
-      } else if ( next[1] == 't' ) {
-        *nextDest = '\t';
-        strcpy( nextDest + 1, next + 2 );
+      #define REPLACE( match, value ) \
+      if ( next[1] == match ) { \
+        *nextDest = value; \
       }
+      REPLACE( 'b', '\b' )
+      else REPLACE( 't', '\t' )
+      else REPLACE( 'f', '\f' )
+      else REPLACE( 'n', '\n' )
+      else REPLACE( 'r', '\r' )
+      else REPLACE( '"', '"' )
+      else REPLACE( '/', '/' )
+      else REPLACE( '\\', '\\' )
+      #undef REPLACE
+      else if ( next[1] == 'u' ) {
+        int num = 0;
+        sscanf( next + 2, "%04x", &num );
+        int chsize = 0;
+
+        // Number is in normal ascii range.
+        if ( num < 0x80 ) {
+          nextDest[0] = num; // Up to 0x7f
+          chsize = 1;
+        // Split the value into 2 or 3 chars as utf8.
+        } else if ( num < 0x800 ) {
+          nextDest[0] = 0xc0 | ( ( num >> 6 ) & 0x1f );
+          nextDest[1] = 0x80 | ( num & 0x3f );
+          chsize = 2;
+        } else {
+          nextDest[0] = 0xe0 | ( ( num >> 12 ) & 0x0f );
+          nextDest[1] = 0x80 | ( ( num >> 6 ) & 0x3f );
+          nextDest[2] = 0x80 | ( num & 0x3f );
+          chsize = 3;
+        }
+
+        next += 4;
+        nextDest += chsize - 1;
+        size -= 5 - chsize;
+      }
+
       size--;
+      strcpy( nextDest + 1, next + 2 );
       tmpCursor = next + 2;
       destCursor = nextDest + 1;
     } else {
@@ -1081,10 +1118,10 @@ static void yy_reduce(
   free( dest );
   free( tmp );
 }
-#line 1085 "toml-lemon.c"
+#line 1122 "toml-lemon.c"
         break;
       case 27: /* number ::= NUMBER */
-#line 269 "toml-lemon.lemon"
+#line 306 "toml-lemon.lemon"
 {
   char *tmp = _TOML_newstr( yymsp[0].minor.yy0 );
 
@@ -1096,26 +1133,26 @@ static void yy_reduce(
 
   free( tmp );
 }
-#line 1100 "toml-lemon.c"
+#line 1137 "toml-lemon.c"
         break;
       case 28: /* boolean ::= TRUE */
-#line 282 "toml-lemon.lemon"
+#line 319 "toml-lemon.lemon"
 {
   yygotominor.yy3 = TOML_allocBoolean( 1 );
   yy_destructor(yypParser,11,&yymsp[0].minor);
 }
-#line 1108 "toml-lemon.c"
+#line 1145 "toml-lemon.c"
         break;
       case 29: /* boolean ::= FALSE */
-#line 286 "toml-lemon.lemon"
+#line 323 "toml-lemon.lemon"
 {
   yygotominor.yy3 = TOML_allocBoolean( 0 );
   yy_destructor(yypParser,12,&yymsp[0].minor);
 }
-#line 1116 "toml-lemon.c"
+#line 1153 "toml-lemon.c"
         break;
       case 30: /* date ::= DATE */
-#line 291 "toml-lemon.lemon"
+#line 328 "toml-lemon.lemon"
 {
   int year;
   int month;
@@ -1130,37 +1167,37 @@ static void yy_reduce(
   );
   yygotominor.yy4 = TOML_allocDate( year, month, day, hour, minute, second );
 }
-#line 1134 "toml-lemon.c"
+#line 1171 "toml-lemon.c"
         break;
       case 31: /* error ::= EOF error */
-#line 310 "toml-lemon.lemon"
+#line 347 "toml-lemon.lemon"
 { yygotominor.yy67 = yymsp[0].minor.yy67;   yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
-#line 1140 "toml-lemon.c"
+#line 1177 "toml-lemon.c"
         break;
       case 32: /* table_header ::= LEFT_SQUARE error */
-#line 312 "toml-lemon.lemon"
+#line 349 "toml-lemon.lemon"
 {
   _TOML_fillError( yymsp[-1].minor.yy0, state, TOML_ERROR_INVALID_HEADER );
 }
-#line 1147 "toml-lemon.c"
+#line 1184 "toml-lemon.c"
         break;
       case 33: /* entry ::= id EQ error */
-#line 316 "toml-lemon.lemon"
+#line 353 "toml-lemon.lemon"
 {
   _TOML_fillError( state->token, state, TOML_ERROR_NO_VALUE );
   free( yymsp[-2].minor.yy0 );
   yy_destructor(yypParser,6,&yymsp[-1].minor);
 }
-#line 1156 "toml-lemon.c"
+#line 1193 "toml-lemon.c"
         break;
       case 34: /* entry ::= id error */
-#line 321 "toml-lemon.lemon"
+#line 358 "toml-lemon.lemon"
 {
   _TOML_fillError( state->token, state, TOML_ERROR_NO_EQ );
   free( yymsp[-1].minor.yy0 );
 }
-#line 1164 "toml-lemon.c"
+#line 1201 "toml-lemon.c"
         break;
       default:
       /* (1) line ::= line_and_comment */ yytestcase(yyruleno==1);
@@ -1215,7 +1252,7 @@ static void yy_parse_failed(
   ** parser fails */
 #line 3 "toml-lemon.lemon"
  _TOML_fillError( state->token, state, TOML_ERROR_FATAL ); 
-#line 1219 "toml-lemon.c"
+#line 1256 "toml-lemon.c"
   TOMLParserARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 #endif /* YYNOERRORRECOVERY */

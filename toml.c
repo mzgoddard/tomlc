@@ -721,18 +721,77 @@ void _TOML_stringifyString(
 ) {
   char *cursor = string->content;
   while ( cursor != NULL ) {
-    char *next = strpbrk( cursor, "\"\n\t" );
+    // Scan for escapable character or unicode.
+    char *next = cursor;
+    unsigned int ch = *next;
+    for ( ;
+      !(
+        ch == 0 ||
+          ch == '\b' ||
+          ch == '\t' ||
+          ch == '\f' ||
+          ch == '\n' ||
+          ch == '\r' ||
+          ch == '"' ||
+          ch == '/' ||
+          ch == '\\' ||
+          ch > 0x7f
+      );
+      next++, ch = *next
+    ) {}
 
+    if ( *next == 0 ) {
+      next = NULL;
+    }
+
+    // Copy text up to character and then insert escaped character.
     if ( next ) {
       _TOML_stringifyText( self, cursor, next - cursor );
-      if ( *next == '\"' ) {
-        _TOML_stringifyText( self, "\\\"", 2 );
-      } else if ( *next == '\n' ) {
-        _TOML_stringifyText( self, "\\n", 2 );
-      } else if ( *next == '\t' ) {
-        _TOML_stringifyText( self, "\\t", 2 );
+
+      #define REPLACE( match, value ) \
+      if ( *next == match ) { \
+        _TOML_stringifyText( self, value, 2 ); \
       }
+      REPLACE( '\b', "\\b" )
+      else REPLACE( '\t', "\\t" )
+      else REPLACE( '\f', "\\f" )
+      else REPLACE( '\n', "\\n" )
+      else REPLACE( '\r', "\\r" )
+      else REPLACE( '"', "\\\"" )
+      else REPLACE( '/', "\\/" )
+      else REPLACE( '\\', "\\\\" )
+      #undef REPLACE
+      else if ( ((unsigned int) *next ) > 0x7f ) {
+        int num = 0;
+        int chsize;
+
+        // Decode the numeric representation of the utf8 character
+        if ( ( *next & 0xe0 ) == 0xe0 ) {
+          chsize = 3;
+          num =
+            ( ( next[0] & 0x0f ) << 12 ) |
+              ( ( next[1] & 0x3f ) << 6 ) |
+              ( next[2] & 0x3f );
+        } else if ( ( *next & 0xc0 ) == 0xc0 ) {
+          chsize = 2;
+          num =
+            ( ( next[0] & 0x1f ) << 6 ) |
+              ( next[1] & 0x3f );
+        } else {
+          assert( 0 );
+        }
+
+        // Stringify \uxxxx
+        char utf8Buffer[5];
+        snprintf( utf8Buffer, 5, "%04x", num );
+        _TOML_stringifyText( self, "\\u", 2 );
+        _TOML_stringifyText( self, utf8Buffer, 4 );
+
+        next += chsize - 1;
+      }
+
       next++;
+    // Copy everything up to the end.
     } else {
       _TOML_stringifyText( self, cursor, strlen( cursor ) );
     }

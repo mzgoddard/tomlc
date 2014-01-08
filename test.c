@@ -4,7 +4,7 @@
 #include "toml.h"
 
 int main() {
-  plan( 64 );
+  plan( 75 );
 
   note( "\n** memory management **" );
 
@@ -71,12 +71,28 @@ int main() {
     note( "parse_entry_string" );
     TOMLTable *table = NULL;
     TOML_parse( "world = \"hello\"\n", &table, NULL );
-    ok( table != NULL );
+    ok( table != NULL, "table created" );
     TOMLRef world = TOMLTable_getKey( table, "world" );
     char *buffer = malloc( 256 );
     TOML_copyString( world, 256, buffer );
-    is( buffer, "hello" );
+    is( buffer, "hello", "string contained hello" );
     free( buffer );
+    TOML_free( table );
+
+    // escapes
+    table = NULL;
+    TOML_parse( "escapes = \"\\b\\t\\f\\n\\r\\\"\\/\\\\\"", &table, NULL );
+    ok( table != NULL, "table created" );
+    ok( table->keys->size == 1, "table has a member" );
+    ok(
+      TOML_find( table, "escapes", NULL ) != NULL,
+      "table contained escapes"
+    );
+    is(
+      ((TOMLString *) TOML_find( table, "escapes", NULL ))->content,
+      "\b\t\f\n\r\"/\\",
+      "member contained escaped characters"
+    );
     TOML_free( table );
   }
 
@@ -258,6 +274,17 @@ int main() {
     is( buffer, "some words" );
     free( buffer );
     TOML_free( table );
+
+    // escapes
+    table = NULL;
+    TOML_parse( "escapes = \"\\b\\t\\f\\n\\r\\\"\\/\\\\\"", &table, NULL );
+    ok( table != NULL );
+    ok( TOML_find( table, "escapes", NULL ) != NULL );
+    buffer = NULL;
+    TOML_stringify( &buffer, table, NULL );
+    is( buffer, "escapes = \"\\b\\t\\f\\n\\r\\\"\\/\\\\\"\n" );
+    free( buffer );
+    TOML_free( table );
   }
 
   { /** stringify_boolean **/
@@ -308,13 +335,13 @@ int main() {
     note( "stringify_arrays" );
     TOMLTable *table = NULL;
     TOML_parse(
-      "[[planets]]\nmoons = [ \"io\" ]\n[[planets]]\nmoons = []", &table, NULL
+      "[[planets]]\nmoons = [ \"io\" ]\n[[planets]]\n[[planets]]\nmoons = []", &table, NULL
     );
     char *buffer;
     TOML_stringify( &buffer, table, NULL );
     is(
       buffer,
-      "[[planets]]\nmoons = [ \"io\" ]\n\n[[planets]]\nmoons = []\n"
+      "[[planets]]\nmoons = [ \"io\" ]\n\n[[planets]]\n\n[[planets]]\nmoons = []\n"
     );
     free( buffer );
     TOML_free( table );
@@ -337,6 +364,30 @@ int main() {
       "[top.bottom]\nmiddle = \"no\"\n\n"
         "[top.middle.bottom]\nmiddle = \"infact, yes\"\n"
     );
+    free( buffer );
+    TOML_free( table );
+  }
+
+  note( "** unicode **" );
+
+  { /** parse_utf8 **/
+    note( "parse_utf8" );
+    TOMLTable *table = NULL;
+    TOML_parse( "utf8 = \"\\u00a0\\u07ff\\u0800\\uffff\"", &table, NULL );
+    ok( table != NULL );
+    TOMLString *str = TOML_find( table, "utf8", NULL );
+    is( str->content, "\u00a0\u07ff\u0800\uffff" );
+    TOML_free( table );
+  }
+
+  { /** stringify_utf8 **/
+    note( "stringify_utf8" );
+    TOMLTable *table = NULL;
+    TOML_parse( "utf8 = \"\\u00a0\\u07ff\\u0800\\uffff\"", &table, NULL );
+    ok( table != NULL );
+    char *buffer;
+    TOML_stringify( &buffer, table, NULL );
+    is( buffer, "utf8 = \"\\u00a0\\u07ff\\u0800\\uffff\"\n" );
     free( buffer );
     TOML_free( table );
   }
