@@ -1,6 +1,16 @@
-# tomlc
+# tomlc [![Build Status](https://drone.io/github.com/mzgoddard/tomlc/status.png)](https://drone.io/github.com/mzgoddard/tomlc/latest)
 
-[![Build Status](https://drone.io/github.com/mzgoddard/tomlc/status.png)](https://drone.io/github.com/mzgoddard/tomlc/latest)
+This implementation targets [https://github.com/mojombo/toml](https://github.com/mojombo/toml) commit [4f23be43e4](https://github.com/mojombo/toml/commit/4f23be43e42775493f142e7dd025b6227e037dd9).
+
+Out of order tables are not yet supported:
+
+```toml
+[a.b]
+value = 1
+
+[a]
+value = 2
+```
 
 ### License
 
@@ -8,14 +18,18 @@ MIT
 
 ### Dependencies
 
-`libtoml` uses Lemon and re2c to generate its parser and lexer respectively.
+`tomlc` uses Lemon and re2c to generate its parser and lexer respectively.
 
 - Lemon : http://www.hwaci.com/sw/lemon/
 - re2c : http://re2c.org/
 
 ### Build Instructions
 
-1. `./waf configure build install`
+1. Install `re2c`.
+1. `./waf configure build install`  
+  By default, this installs as `toml`.
+
+1. Test with `build/toml-test`
 
 ### Usage
 
@@ -33,3 +47,5 @@ int size = TOML_int( value );
 // Free the TOML hierarchy when you're done.
 TOML_free( table );
 ```
+
+Part of `tomlc` is a tool called `toml-lookup` that can be used to access parts of a toml file. For example `toml-lookup test.toml "en.text[0].characterImage"` prints `text-only` to stdout.
