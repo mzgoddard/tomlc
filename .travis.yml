@@ -9,7 +9,8 @@ script:
   - build/toml-test
 
 env:
-  - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/build:$LD_LIBRARY_PATH
+  - - ANSICOLOR=1
+    - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/build:$LD_LIBRARY_PATH
 
 compiler:
   - clang
