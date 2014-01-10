@@ -1,9 +1,11 @@
 #include <math.h>
+#include <stdlib.h>
 
 #include "tap.h"
 #include "toml.h"
 
 int main() {
+  ansicolor( getenv( "ANSICOLOR" ) != NULL );
   plan( 75 );
 
   note( "\n** memory management **" );

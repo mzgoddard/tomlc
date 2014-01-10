@@ -1,0 +1,17 @@
+language: c
+
+before_install:
+  - sudo apt-get install re2c
+
+script:
+  - ./waf configure build
+  - build/toml-lookup test.toml -c
+  - build/toml-test
+
+env:
+  - - ANSICOLOR=1
+    - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/build:$LD_LIBRARY_PATH
+
+compiler:
+  - clang
+  - gcc
