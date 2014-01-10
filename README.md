@@ -1,4 +1,4 @@
-# tomlc [![Build Status](https://drone.io/github.com/mzgoddard/tomlc/status.png)](https://drone.io/github.com/mzgoddard/tomlc/latest)
+# tomlc [![Build Status](https://travis-ci.org/mzgoddard/tomlc.png?branch=master)](https://travis-ci.org/mzgoddard/tomlc)
 
 This implementation targets [https://github.com/mojombo/toml](https://github.com/mojombo/toml) commit [4f23be43e4](https://github.com/mojombo/toml/commit/4f23be43e42775493f142e7dd025b6227e037dd9).
 
